@@ -1,0 +1,23 @@
+[
+  {"model": "core.categoria", "pk": 1, "fields": {"nombre": "alimentos", "precio_por_kg": "8.00", "activo": true}},
+  {"model": "core.categoria", "pk": 2, "fields": {"nombre": "medicamentos", "precio_por_kg": "10.00", "activo": true}},
+  {"model": "core.categoria", "pk": 3, "fields": {"nombre": "electrodomesticos", "precio_por_kg": "12.00", "activo": true}},
+  {"model": "core.categoria", "pk": 4, "fields": {"nombre": "paq", "precio_por_kg": "6.00", "activo": true}},
+  
+  {"model": "core.provincia", "pk": 1, "fields": {"codigo": "HOL", "costo_envio": "3.00", "activo": true}},
+  {"model": "core.provincia", "pk": 2, "fields": {"codigo": "SCU", "costo_envio": "3.50", "activo": true}},
+  {"model": "core.provincia", "pk": 3, "fields": {"codigo": "GTM", "costo_envio": "4.00", "activo": true}},
+  {"model": "core.provincia", "pk": 4, "fields": {"codigo": "PRI", "costo_envio": "2.00", "activo": true}},
+  {"model": "core.provincia", "pk": 5, "fields": {"codigo": "ART", "costo_envio": "2.00", "activo": true}},
+  {"model": "core.provincia", "pk": 6, "fields": {"codigo": "MAY", "costo_envio": "2.00", "activo": true}},
+  {"model": "core.provincia", "pk": 7, "fields": {"codigo": "HAB", "costo_envio": "2.00", "activo": true}},
+  {"model": "core.provincia", "pk": 8, "fields": {"codigo": "MTZ", "costo_envio": "2.00", "activo": true}},
+  {"model": "core.provincia", "pk": 9, "fields": {"codigo": "CFG", "costo_envio": "2.00", "activo": true}},
+  {"model": "core.provincia", "pk": 10, "fields": {"codigo": "VCL", "costo_envio": "2.00", "activo": true}},
+  {"model": "core.provincia", "pk": 11, "fields": {"codigo": "SSP", "costo_envio": "2.00", "activo": true}},
+  {"model": "core.provincia", "pk": 12, "fields": {"codigo": "CAV", "costo_envio": "2.00", "activo": true}},
+  {"model": "core.provincia", "pk": 13, "fields": {"codigo": "CMG", "costo_envio": "2.00", "activo": true}},
+  {"model": "core.provincia", "pk": 14, "fields": {"codigo": "LTU", "costo_envio": "2.00", "activo": true}},
+  {"model": "core.provincia", "pk": 15, "fields": {"codigo": "GRM", "costo_envio": "3.00", "activo": true}},
+  {"model": "core.provincia", "pk": 16, "fields": {"codigo": "IJV", "costo_envio": "5.00", "activo": true}}
+]

@@ -1,0 +1,37 @@
+# Django y REST Framework
+Django	#==4.2.7
+djangorestframework	#==3.14.0
+djangorestframework-simplejwt	#==5.3.0
+django-cors-headers	#==4.3.0
+django-filter	#==23.3
+
+# Base de datos
+psycopg2-binary	#==2.9.9
+
+# Autenticación y seguridad
+python-dotenv	#==1.0.0
+bcrypt	#==4.0.1
+
+# Tareas asíncronas (opcional)
+celery	#==5.3.1
+redis	#==5.0.0
+
+# PDFs y reportes
+reportlab	#==4.0.4
+Pillow	#==12.3.0  # Para manejo de imágenes
+
+# Documentación API
+drf-yasg	#==1.21.7
+
+# Testing
+pytest	#==7.4.0
+pytest-django	#==4.5.2
+pytest-cov	#==4.1.0
+factory-boy	#==3.3.0
+
+# Utilidades
+python-magic	#==0.4.27  # Para validación de archivos
+django-ckeditor	#==6.7.0  # Para texto enriquecido (opcional)
+
+# Envío de emails
+django-email-verification	#==0.5.0

@@ -1,0 +1,45 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div class="module" style="padding: 20px;">
+    <h2>Duplicar Tarifas</h2>
+    
+    <p><strong>Tarifas seleccionadas:</strong> {{ queryset.count }}</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="apply" value="1">
+        
+        <div class="form-row" style="margin: 20px 0;">
+            <label style="font-weight: bold; margin-right: 10px;">Duplicar a:</label>
+            <select name="tipo_duplicacion" id="tipo_duplicacion" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; width: 200px;">
+                <option value="categoria">Otra categoría</option>
+                <option value="provincia">Otra provincia</option>
+            </select>
+        </div>
+        
+        <div class="form-row" style="margin: 20px 0;">
+            <label style="font-weight: bold; margin-right: 10px;">Destino:</label>
+            <select name="destino" id="destino" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; width: 250px;">
+                <option value="">--- Seleccionar ---</option>
+                <optgroup label="Categorías">
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id }}">{{ cat }}</option>
+                    {% endfor %}
+                </optgroup>
+                <optgroup label="Provincias">
+                    {% for codigo, nombre in provincias %}
+                        <option value="{{ codigo }}">{{ nombre }}</option>
+                    {% endfor %}
+                </optgroup>
+            </select>
+        </div>
+        
+        <div class="submit-row" style="margin-top: 30px;">
+            <input type="submit" value="Duplicar Tarifas" class="default" style="background: #79aec8; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+            <a href="{% url 'admin:core_tarifa_changelist' %}" class="button" style="background: #f0f0f0; color: #333; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-left: 10px;">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

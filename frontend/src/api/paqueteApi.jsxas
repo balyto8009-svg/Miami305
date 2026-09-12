@@ -1,0 +1,57 @@
+import axiosInstance from './axiosConfig';
+
+export const paqueteApi = {
+  // Obtener lista de paquetes
+  getAll: async (params = {}) => {
+    const response = await axiosInstance.get('/paquetes/', { params });
+    return response.data;
+  },
+
+  // Obtener un paquete por ID
+  getById: async (id) => {
+    const response = await axiosInstance.get(`/paquetes/${id}/`);
+    return response.data;
+  },
+
+  // Obtener paquete por código de seguimiento
+  getByCodigo: async (codigo) => {
+    const response = await axiosInstance.get(`/paquetes/seguimiento/${codigo}/`);
+    return response.data;
+  },
+
+  // Crear nuevo paquete
+  create: async (data) => {
+    const response = await axiosInstance.post('/paquetes/', data);
+    return response.data;
+  },
+
+  // Actualizar paquete
+  update: async (id, data) => {
+    const response = await axiosInstance.put(`/paquetes/${id}/`, data);
+    return response.data;
+  },
+
+  // Cambiar estado del paquete
+  cambiarEstado: async (id, estado, observacion = '') => {
+    const response = await axiosInstance.post(`/paquetes/${id}/cambiar_estado/`, {
+      estado,
+      observacion
+    });
+    return response.data;
+  },
+
+  // Consolidar paquetes
+  consolidar: async (paqueteIds, datosEnvio) => {
+    const response = await axiosInstance.post('/paquetes/consolidar/', {
+      paquete_ids: paqueteIds,
+      datos_envio: datosEnvio
+    });
+    return response.data;
+  },
+
+  // Obtener historial de estados
+  getHistorial: async (id) => {
+    const response = await axiosInstance.get(`/paquetes/${id}/historial/`);
+    return response.data;
+  }
+};

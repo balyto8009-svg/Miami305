@@ -1,0 +1,6 @@
+[
+  {"model": "core.tarifa", "pk": 1, "fields": {"provincia": "HOL", "categoria": "alimentos", "precio_por_kg": "8.00", "sobrecargo": "3.00", "activo": true}},
+  {"model": "core.tarifa", "pk": 2, "fields": {"provincia": "HOL", "categoria": "medicamentos", "precio_por_kg": "10.00", "sobrecargo": "3.00", "activo": true}},
+  {"model": "core.tarifa", "pk": 3, "fields": {"provincia": "HOL", "categoria": "electrodomesticos", "precio_por_kg": "12.00", "sobrecargo": "3.00", "activo": true}},
+  {"model": "core.tarifa", "pk": 4, "fields": {"provincia": "HOL", "categoria": "paq", "precio_por_kg": "6.00", "sobrecargo": "3.00", "activo": true}}
+]

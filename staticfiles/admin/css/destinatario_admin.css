@@ -1,0 +1,81 @@
+/**
+ * static/admin/css/destinatario_admin.css
+ * Ubicación: Miami305/static/admin/css/destinatario_admin.css
+ * 
+ * DESCRIPCIÓN:
+ * Estilos personalizados para el admin de destinatarios.
+ */
+
+/* Contenedor de dirección en dos columnas */
+.direccion-container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 20px !important;
+    width: 100% !important;
+    margin-top: 10px !important;
+}
+
+/* Columna izquierda: Domicilio, Provincia, Municipio, Reparto, Latitud, Longitud (50%) */
+.direccion-col-izquierda {
+    flex: 0 0 48% !important;
+    min-width: 280px !important;
+}
+
+/* Columna derecha: Referencias (50%) */
+.direccion-col-derecha {
+    flex: 0 0 48% !important;
+    min-width: 280px !important;
+}
+
+/* Estilo para el campo referencias en la columna derecha */
+.direccion-col-derecha .form-row {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+
+.direccion-col-derecha textarea {
+    width: 100% !important;
+    height: 200px !important;
+    min-height: 180px !important;
+    padding: 8px 12px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    font-size: 13px !important;
+    font-family: inherit !important;
+    resize: vertical !important;
+    box-sizing: border-box !important;
+    background-color: #fafafa !important;
+    flex: 1 !important;
+}
+
+.direccion-col-derecha textarea:focus {
+    border-color: #79aec8 !important;
+    outline: none !important;
+    box-shadow: 0 0 5px rgba(121, 174, 200, 0.3) !important;
+}
+
+/* Estilo para las filas de latitud y longitud en la misma línea */
+.direccion-col-izquierda .form-row.field-latitud,
+.direccion-col-izquierda .form-row.field-longitud {
+    display: inline-block !important;
+    width: 48% !important;
+}
+
+.direccion-col-izquierda .form-row.field-longitud {
+    margin-left: 4% !important;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .direccion-col-izquierda,
+    .direccion-col-derecha {
+        flex: 0 0 100% !important;
+        min-width: unset !important;
+    }
+    
+    .direccion-col-derecha textarea {
+        height: 120px !important;
+        min-height: 100px !important;
+    }
+}
