@@ -11,6 +11,10 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveField(
+            model_name='categoria',
+            name='icono',
+        ),
+        migrations.RemoveField(
             model_name='paquete',
             name='foto',
         ),
