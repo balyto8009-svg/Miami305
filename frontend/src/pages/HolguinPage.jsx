@@ -1,8 +1,10 @@
 // frontend/src/pages/HolguinPage.jsx
 import React, { useState, useEffect } from 'react';
-import { Card, Input, Button, Tabs, Table, Tag, Upload, Modal, Row, Col, Badge, Space, message, List } from 'antd';
-import { ScanOutlined, CameraOutlined, CheckCircleOutlined, EnvironmentOutlined, PhoneOutlined } from '@ant-design/icons';
+import { Card, Input, Button, Tabs, Tag, Upload, Modal, Row, Col, Badge, Space, message, List, Typography } from 'antd';
+import { ScanOutlined, CameraOutlined, CheckCircleOutlined, EnvironmentOutlined, PhoneOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { getPaquetesPorReparto, registrarEntregaConFoto, recibirYDesembalarBulto } from '../api/apiService';
+
+const { Text, Title } = Typography;
 
 const HolguinPage = () => {
   const [codigoBultoInput, setCodigoBultoInput] = useState('');
@@ -39,7 +41,7 @@ const HolguinPage = () => {
     try {
       setLoading(true);
       const res = await recibirYDesembalarBulto(codigoBultoInput.trim());
-      message.success(res.message || 'Bulto desembalado con éxito');
+      message.success(res.message || 'Bulto desembalado exitosamente');
       setCodigoBultoInput('');
       cargarPaquetesPorReparto();
     } catch (err) {
@@ -59,7 +61,7 @@ const HolguinPage = () => {
 
   const handleConfirmarEntrega = async () => {
     if (fileList.length === 0) {
-      message.warning('Es obligatorio tomar/subir la foto de constancia de entrega');
+      message.warning('La foto de constancia de entrega es obligatoria');
       return;
     }
 
@@ -70,54 +72,60 @@ const HolguinPage = () => {
       formData.append('observacion', observacionEntrega);
 
       await registrarEntregaConFoto(paqueteEntrega.id, formData);
-      message.success(`Paquete ${paqueteEntrega.codigo_seguimiento} entregado exitosamente`);
+      message.success(`Paquete ${paqueteEntrega.codigo_seguimiento} entregado con constancia fotográfica`);
       setModalEntregaOpen(false);
       cargarPaquetesPorReparto();
     } catch (err) {
       console.error(err);
-      message.error('Error al registrar entrega con foto');
+      message.error('Error al registrar entrega');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2>🇨🇺 Operaciones Sede Holguín - Recepción y Entregas</h2>
+    <div style={{ padding: 24, backgroundColor: '#f4f6f9', minHeight: '100vh' }}>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ margin: 0, fontWeight: 700, color: '#001529' }}>🇨🇺 Operaciones Sede Holguín - Entregas por Reparto</h2>
+        <p style={{ color: '#666', margin: 0 }}>Recepcione los bultos del vuelo, organice las entregas por reparto y registre evidencias con foto estampada.</p>
+      </div>
 
       {/* SECCION 1: RECEPCION DE VUELO Y DESEMBALAJE DE BULTOS */}
-      <Card title="🛬 1. Recepción de Vuelo y Desembalaje de Bultos" style={{ marginBottom: 24, backgroundColor: '#e6f7ff' }}>
+      <Card title="🛬 1. Lectura / Escaneo de Bulto al Llegar de Aeropuerto" style={{ marginBottom: 24, borderRadius: 8, borderColor: '#91d5ff' }}>
         <Row gutter={16} align="middle">
-          <Col span={14}>
+          <Col span={16}>
             <Input
               size="large"
-              placeholder="Escanee o ingrese el Código del Bulto (ej: BUL-2026-001)"
-              prefix={<ScanOutlined />}
+              placeholder="Escanee o escriba el código del bulto (ej: BUL-2026-001)"
+              prefix={<ScanOutlined style={{ color: '#1890ff' }} />}
               value={codigoBultoInput}
               onChange={e => setCodigoBultoInput(e.target.value)}
               onPressEnter={handleDesembalarBulto}
             />
           </Col>
-          <Col span={10}>
-            <Button type="primary" size="large" icon={<CheckCircleOutlined />} onClick={handleDesembalarBulto} loading={loading}>
-              Recibir y Sacar Paquetes
+          <Col span={8}>
+            <Button type="primary" size="large" icon={<CheckCircleOutlined />} onClick={handleDesembalarBulto} loading={loading} block style={{ borderRadius: 6 }}>
+              Desembalar & Clasificar
             </Button>
           </Col>
         </Row>
       </Card>
 
-      {/* SECCION 2: DISTRIBUCION POR REPARTO */}
-      <Card title="📍 2. Clasificación de Paquetes por Reparto en Holguín para Entrega Rápida">
+      {/* SECCION 2: PAQUETES CLASIFICADOS POR REPARTO */}
+      <Card title="📍 2. Clasificación Ordenada de Paquetes por Reparto para Entregas Rápidas" style={{ borderRadius: 8 }}>
         {repartos.length === 0 ? (
-          <p style={{ color: '#888' }}>No hay paquetes pendientes por reparto.</p>
+          <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>
+            No hay paquetes pendientes de distribución en Holguín.
+          </div>
         ) : (
-          <Tabs type="card">
+          <Tabs type="card" size="large">
             {repartos.map(rep => (
               <Tabs.TabPane
                 tab={
-                  <span>
-                    <strong>{rep.nombre_reparto}</strong> <Badge count={rep.total_paquetes} style={{ backgroundColor: '#52c41a', marginLeft: 8 }} />
-                  </span>
+                  <Space>
+                    <strong>{rep.nombre_reparto}</strong>
+                    <Badge count={rep.total_paquetes} style={{ backgroundColor: '#52c41a' }} />
+                  </Space>
                 }
                 key={rep.codigo_reparto}
               >
@@ -127,34 +135,37 @@ const HolguinPage = () => {
                   renderItem={p => (
                     <List.Item>
                       <Card
-                        title={<strong>{p.codigo_seguimiento} - {p.destinatario?.nombre_completo}</strong>}
+                        style={{ borderRadius: 8, borderColor: p.estado === 'entregado' ? '#b7eb8f' : '#d9d9d9' }}
+                        title={<span style={{ fontSize: 16 }}>📦 <strong>{p.codigo_seguimiento}</strong></span>}
                         extra={<Tag color={p.estado === 'entregado' ? 'green' : 'blue'}>{p.estado_display}</Tag>}
                       >
+                        <p><strong>Destinatario:</strong> {p.destinatario?.nombre_completo}</p>
                         <p><strong>CI:</strong> {p.destinatario?.ci || 'N/A'}</p>
-                        <p><strong>Dirección Exacta:</strong> {p.destinatario?.domicilio_exacto}</p>
-                        <p><strong>Teléfonos:</strong>
+                        <p><strong>Dirección:</strong> {p.destinatario?.domicilio_exacto}</p>
+                        <p><strong>Teléfonos Directos:</strong>
                           {p.destinatario?.telefono && (
-                            <a href={`tel:${p.destinatario.telefono}`} style={{ marginLeft: 8 }}>
+                            <a href={`tel:${p.destinatario.telefono}`} style={{ marginLeft: 8, fontWeight: 'bold' }}>
                               <PhoneOutlined /> {p.destinatario.telefono}
                             </a>
                           )}
                           {p.destinatario?.telefono2 && (
-                            <a href={`tel:${p.destinatario.telefono2}`} style={{ marginLeft: 8 }}>
+                            <a href={`tel:${p.destinatario.telefono2}`} style={{ marginLeft: 8, fontWeight: 'bold' }}>
                               <PhoneOutlined /> {p.destinatario.telefono2}
                             </a>
                           )}
                         </p>
-                        <p><strong>Descripción:</strong> {p.descripcion || 'Paquete regular'}</p>
+                        <p><strong>Contenido:</strong> {p.descripcion || 'Sin descripción'}</p>
 
                         {p.destinatario?.latitud && p.destinatario?.longitud && (
-                          <div style={{ marginBottom: 12 }}>
-                            <a
-                              href={`https://www.openstreetmap.org/?mlat=${p.destinatario.latitud}&mlon=${p.destinatario.longitud}&zoom=17`}
-                              target="_blank"
-                              rel="noreferrer"
+                          <div style={{ margin: '12px 0' }}>
+                            <Button
+                              type="dashed"
+                              icon={<EnvironmentOutlined />}
+                              block
+                              onClick={() => window.open(`https://www.openstreetmap.org/?mlat=${p.destinatario.latitud}&mlon=${p.destinatario.longitud}&zoom=17`, '_blank')}
                             >
-                              <EnvironmentOutlined /> Abrir Ubicación GPS en Mapa
-                            </a>
+                              Navegar GPS a Dirección
+                            </Button>
                           </div>
                         )}
 
@@ -163,13 +174,15 @@ const HolguinPage = () => {
                             type="primary"
                             icon={<CameraOutlined />}
                             block
-                            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+                            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', height: 40, marginTop: 8 }}
                             onClick={() => abrirModalEntrega(p)}
                           >
                             Registrar Entrega con Foto
                           </Button>
                         ) : (
-                          <Tag color="success">✅ Entregado con evidencia fotográfica</Tag>
+                          <Tag color="success" style={{ padding: '6px 12px', width: '100%', textAlign: 'center', fontSize: 13 }}>
+                            <SafetyCertificateOutlined /> Entregado con foto estampada
+                          </Tag>
                         )}
                       </Card>
                     </List.Item>
@@ -181,41 +194,43 @@ const HolguinPage = () => {
         )}
       </Card>
 
-      {/* MODAL DE CONFIRMACION DE ENTREGA Y CAPTURA DE FOTO */}
+      {/* MODAL EVIDENCIA DE ENTREGA */}
       <Modal
-        title={`📸 Evidencia de Entrega: ${paqueteEntrega?.codigo_seguimiento}`}
+        title={`📸 Registrar Constancia de Entrega (${paqueteEntrega?.codigo_seguimiento})`}
         open={modalEntregaOpen}
         onCancel={() => setModalEntregaOpen(false)}
         onOk={handleConfirmarEntrega}
-        okText="Confirmar y Guardar Foto"
+        okText="Confirmar Entrega"
         cancelText="Cancelar"
         confirmLoading={loading}
       >
-        <p><strong>Destinatario:</strong> {paqueteEntrega?.destinatario?.nombre_completo}</p>
-        <p><strong>Dirección:</strong> {paqueteEntrega?.destinatario?.domicilio_exacto}</p>
+        <div style={{ marginBottom: 16 }}>
+          <p><strong>Destinatario:</strong> {paqueteEntrega?.destinatario?.nombre_completo}</p>
+          <p><strong>Dirección de Entrega:</strong> {paqueteEntrega?.destinatario?.domicilio_exacto}</p>
+        </div>
 
-        <div style={{ margin: '16px 0' }}>
-          <label><strong>Foto de la Entrega (Obligatorio):</strong></label>
+        <div style={{ marginBottom: 16 }}>
+          <label><strong>Fotografía de la Entrega (Obligatorio):</strong></label>
           <Upload
             beforeUpload={() => false}
             maxCount={1}
             fileList={fileList}
             onChange={({ fileList }) => setFileList(fileList)}
           >
-            <Button icon={<CameraOutlined />}>Tomar Foto / Subir Captura</Button>
+            <Button icon={<CameraOutlined />} block size="large" style={{ marginTop: 8 }}>Capturar / Cargar Foto</Button>
           </Upload>
-          <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
-            * La foto incluirá automáticamente la marca de agua visual con texto ENTREGADO, Día, Fecha y Hora exacta.
-          </div>
+          <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 6 }}>
+            ℹ️ El sistema estampará automáticamente la marca de agua con la leyenda "ENTREGADO - Día Fecha Hora" en la foto.
+          </Text>
         </div>
 
         <div>
-          <label>Observaciones de Entrega:</label>
+          <label><strong>Observaciones:</strong></label>
           <Input.TextArea
             rows={2}
             value={observacionEntrega}
             onChange={e => setObservacionEntrega(e.target.value)}
-            placeholder="Escriba algún detalle adicional si aplica"
+            placeholder="Notas sobre el estado de la entrega..."
           />
         </div>
       </Modal>

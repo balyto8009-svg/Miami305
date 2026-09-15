@@ -18,6 +18,8 @@ import Dashboard from './pages/Dashboard';
 import ClientesPage from './pages/ClientesPage';
 import EnviosPage from './pages/EnviosPage';
 import PaquetesPage from './pages/PaquetesPage';
+import BultosPage from './pages/BultosPage';
+import HolguinPage from './pages/HolguinPage';
 import ReportesPage from './pages/ReportesPage';
 import TrackingPage from './pages/TrackingPage';
 
@@ -44,6 +46,8 @@ const App = () => {
                                 <Route path="/clientes" element={<ClientesPage />} />
                                 <Route path="/envios" element={<EnviosPage />} />
                                 <Route path="/paquetes" element={<PaquetesPage />} />
+                                <Route path="/bultos" element={<BultosPage />} />
+                                <Route path="/holguin" element={<HolguinPage />} />
                                 <Route path="/reportes" element={<ReportesPage />} />
                                 <Route path="/tracking" element={<TrackingPage />} />
                             </Route>
