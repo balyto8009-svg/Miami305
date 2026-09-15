@@ -1,7 +1,7 @@
 // frontend/src/pages/BultosPage.jsx
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Row, Col, Upload, Input, Space, Tag, Modal, message, Progress, Typography } from 'antd';
-import { UploadOutlined, PrinterOutlined, QrcodeOutlined, ShoppingBagOutlined, WarningOutlined } from '@ant-design/icons';
+import { UploadOutlined, PrinterOutlined, QrcodeOutlined, ShoppingOutlined, WarningOutlined } from '@ant-design/icons';
 import { getPaquetes, crearBulto } from '../api/apiService';
 
 const { Title, Text } = Typography;
@@ -153,7 +153,7 @@ const BultosPage = () => {
               type="primary"
               size="large"
               block
-              icon={<ShoppingBagOutlined />}
+              icon={<ShoppingOutlined />}
               onClick={handleCrearBulto}
               disabled={selectedIds.length === 0}
               loading={loading}

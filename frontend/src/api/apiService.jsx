@@ -413,6 +413,76 @@ export const getDestinatariosPorCliente = async (clienteId) => {
 };
 
 // ==========================================
+// CATEGORÍAS Y BULTOS
+// ==========================================
+
+export const getCategoriasActivas = async () => {
+    try {
+        const response = await api.get('/categorias/activas/');
+        return response.data;
+    } catch (error) {
+        console.error('❌ Error al obtener categorías activas:', error);
+        throw error;
+    }
+};
+
+export const crearPaquete = async (formData) => {
+    try {
+        const response = await api.post('/paquetes/', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('❌ Error al crear paquete:', error);
+        throw error;
+    }
+};
+
+export const crearBulto = async (formData) => {
+    try {
+        const response = await api.post('/envios/crear-bulto/', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('❌ Error al crear bulto:', error);
+        throw error;
+    }
+};
+
+export const recibirYDesembalarBulto = async (codigoBulto) => {
+    try {
+        const response = await api.post('/envios/recibir-desembalar/', { codigo_bulto: codigoBulto });
+        return response.data;
+    } catch (error) {
+        console.error('❌ Error al desembalar bulto:', error);
+        throw error;
+    }
+};
+
+export const getPaquetesPorReparto = async () => {
+    try {
+        const response = await api.get('/paquetes/por-reparto/');
+        return response.data;
+    } catch (error) {
+        console.error('❌ Error al obtener paquetes por reparto:', error);
+        throw error;
+    }
+};
+
+export const registrarEntregaConFoto = async (paqueteId, formData) => {
+    try {
+        const response = await api.post(`/paquetes/${paqueteId}/registrar-entrega/`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(`❌ Error al registrar entrega para paquete ${paqueteId}:`, error);
+        throw error;
+    }
+};
+
+// ==========================================
 // TRACKING
 // ==========================================
 
