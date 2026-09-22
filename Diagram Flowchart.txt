@@ -1,0 +1,87 @@
+flowchart TD
+
+subgraph group_ui["Web interface"]
+  node_app["Application routes<br/>[App.jsx]"]
+  node_auth["Authentication state<br/>[AuthContext.jsx]"]
+  node_customer_ui["Customer management<br/>[ClientesPage.jsx]"]
+  node_parcel_ui["Parcel and shipment screens<br/>[PaquetesPage.jsx]"]
+  node_holguin_ui["Holguín operations<br/>[HolguinPage.jsx]"]
+  node_tracking_ui["Public tracking screen<br/>[TrackingPage.jsx]"]
+  node_reports_ui["Reports screen<br/>[ReportesPage.jsx]"]
+  node_api_client["API client<br/>[apiService.jsx]"]
+end
+
+subgraph group_operations["Shipping operations"]
+  node_api["Django API routes<br/>[urls.py]"]
+  node_customers["Customer endpoints<br/>[cliente_views.py]"]
+  node_packages["Parcel operations<br/>[paquete_views.py]"]
+  node_shipments["Shipment operations<br/>[views.py]"]
+  node_domain_models[("Shipping records<br/>[paquete.py]")]
+end
+
+subgraph group_support["Tracking and outputs"]
+  node_tracking["Tracking endpoints<br/>[views.py]"]
+  node_billing["Invoice generation<br/>[factura_service.py]"]
+  node_pdf["PDF generation<br/>[pdf_service.py]"]
+end
+
+subgraph group_access["Identity and reporting"]
+  node_reports["Report endpoints<br/>[views.py]"]
+  node_users["User management<br/>[views.py]"]
+end
+
+node_staff(("Staff"))
+node_public(("Public user"))
+
+node_staff -->|"uses"| node_app
+node_public -->|"looks up"| node_tracking_ui
+node_app -->|"provides context"| node_auth
+node_app -->|"routes to"| node_customer_ui
+node_app -->|"routes to"| node_parcel_ui
+node_app -->|"routes to"| node_holguin_ui
+node_app -->|"routes to"| node_tracking_ui
+node_app -->|"routes to"| node_reports_ui
+node_customer_ui -->|"calls"| node_api_client
+node_parcel_ui -->|"calls"| node_api_client
+node_api_client -->|"requests"| node_api
+node_api -->|"routes requests"| node_customers
+node_api -->|"routes requests"| node_packages
+node_api -->|"routes requests"| node_shipments
+node_api -->|"routes requests"| node_tracking
+node_api -->|"routes requests"| node_reports
+node_api -->|"routes requests"| node_users
+node_customers -->|"queries"| node_domain_models
+node_packages -->|"uses records"| node_domain_models
+node_shipments -->|"uses records"| node_domain_models
+
+click node_app "https://github.com/balyto8009-svg/miami305/blob/main/frontend/src/App.jsx"
+click node_auth "https://github.com/balyto8009-svg/miami305/blob/main/frontend/src/context/AuthContext.jsx"
+click node_customer_ui "https://github.com/balyto8009-svg/miami305/blob/main/frontend/src/pages/ClientesPage.jsx"
+click node_parcel_ui "https://github.com/balyto8009-svg/miami305/blob/main/frontend/src/pages/PaquetesPage.jsx"
+click node_holguin_ui "https://github.com/balyto8009-svg/miami305/blob/main/frontend/src/pages/HolguinPage.jsx"
+click node_tracking_ui "https://github.com/balyto8009-svg/miami305/blob/main/frontend/src/pages/TrackingPage.jsx"
+click node_reports_ui "https://github.com/balyto8009-svg/miami305/blob/main/frontend/src/pages/ReportesPage.jsx"
+click node_api_client "https://github.com/balyto8009-svg/miami305/blob/main/frontend/src/api/apiService.jsx"
+click node_api "https://github.com/balyto8009-svg/miami305/blob/main/config/urls.py"
+click node_customers "https://github.com/balyto8009-svg/miami305/blob/main/apps/core/views/cliente_views.py"
+click node_packages "https://github.com/balyto8009-svg/miami305/blob/main/apps/core/views/paquete_views.py"
+click node_shipments "https://github.com/balyto8009-svg/miami305/blob/main/apps/core/views/views.py"
+click node_domain_models "https://github.com/balyto8009-svg/miami305/blob/main/apps/core/models/paquete.py"
+click node_tracking "https://github.com/balyto8009-svg/miami305/blob/main/apps/tracking/views.py"
+click node_reports "https://github.com/balyto8009-svg/miami305/blob/main/apps/reports/views.py"
+click node_users "https://github.com/balyto8009-svg/miami305/blob/main/apps/users/views.py"
+click node_billing "https://github.com/balyto8009-svg/miami305/blob/main/services/factura_service.py"
+click node_pdf "https://github.com/balyto8009-svg/miami305/blob/main/services/pdf_service.py"
+
+classDef toneNeutral fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a
+classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
+classDef toneIndigo fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#312e81
+classDef toneTeal fill:#ccfbf1,stroke:#0f766e,stroke-width:1.5px,color:#134e4a
+class node_app,node_auth,node_customer_ui,node_parcel_ui,node_holguin_ui,node_tracking_ui,node_reports_ui,node_api_client,node_public toneBlue
+class node_api,node_customers,node_packages,node_shipments,node_domain_models toneAmber
+class node_tracking,node_billing,node_pdf toneMint
+class node_reports,node_users toneRose
+class node_staff toneIndigo

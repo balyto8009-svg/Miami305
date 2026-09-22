@@ -1,266 +1,252 @@
-// frontend/src/pages/TrackingPage.jsx
+/**
+ * frontend/src/pages/TrackingPage.jsx
+ * Ubicación: Miami305/frontend/src/pages/TrackingPage.jsx
+ *
+ * DESCRIPCIÓN:
+ * Localizador público de paquetes (sin iniciar sesión).
+ * Corrección #18: muestra los datos reales del paquete y su estado con
+ * una línea de tiempo basada en el historial del backend.
+ */
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, Input, Tag, Steps, Descriptions, Button, Space, message, Result, Typography } from 'antd';
+import { SearchOutlined, ArrowLeftOutlined, LoginOutlined, ClearOutlined, FilePdfOutlined } from '@ant-design/icons';
 import { getTrackingPublico } from '../api/apiService';
 
+// PDF de la constancia de rastreo (público, por código)
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+const urlPdfRastreo = (codigo) => `${API_BASE}tracking/publico/${encodeURIComponent(codigo)}/pdf/`;
+
+const { Text } = Typography;
+
+const ORDEN_ESTADOS = ['recibido', 'consolidado', 'en_transito', 'en_cuba', 'entregado'];
+const NOMBRES_ESTADOS = {
+  recibido: 'Recibido en Miami',
+  consolidado: 'Consolidado en bulto',
+  en_transito: 'En tránsito aéreo',
+  en_cuba: 'En Cuba (Holguín)',
+  entregado: 'Entregado',
+};
+
 const TrackingPage = () => {
-    const [codigo, setCodigo] = useState('');
-    const [trackingData, setTrackingData] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const [codigo, setCodigo] = useState('');
+  const [resultado, setResultado] = useState(null);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
 
-    const handleBuscar = async (e) => {
-        e.preventDefault();
-        
-        if (!codigo.trim()) {
-            setError('Por favor, ingresa un código de seguimiento');
-            return;
-        }
+  // Vuelve atrás si la navegación fue interna (react-router guarda el índice
+  // en history.state); si se llegó directamente a /tracking, va al login.
+  const volver = () => {
+    const idx = window.history.state?.idx ?? 0;
+    if (idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/login');
+    }
+  };
 
-        setLoading(true);
-        setError('');
-        setTrackingData(null);
+  // Limpia el resultado para hacer otra consulta sin recargar la página
+  const nuevaConsulta = () => {
+    setResultado(null);
+    setError(null);
+    setCodigo('');
+  };
 
-        try {
-            const data = await getTrackingPublico(codigo.trim());
-            setTrackingData(data);
-        } catch (error) {
-            console.error('❌ Error al buscar tracking:', error);
-            if (error.response?.status === 404) {
-                setError('No se encontró el envío. Verifica el código ingresado.');
-            } else {
-                setError(error.response?.data?.error || 'Error al buscar el envío');
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
+  const buscar = async (valor) => {
+    const cod = (valor ?? codigo).trim();
+    if (!cod) {
+      message.warning('Escriba el código de seguimiento que aparece en su factura');
+      return;
+    }
+    setCargando(true);
+    setError(null);
+    try {
+      const data = await getTrackingPublico(cod);
+      setResultado(data);
+    } catch (err) {
+      setResultado(null);
+      setError(
+        err?.response?.status === 404
+          ? 'No existe un paquete con ese código. Verifique e intente de nuevo.'
+          : 'No se pudo consultar el estado. Intente más tarde.'
+      );
+    } finally {
+      setCargando(false);
+    }
+  };
 
-    const getEstadoEmoji = (estado) => {
-        const emojis = {
-            'recibido': '📋',
-            'consolidado': '📦',
-            'en_transito': '✈️',
-            'en_cuba': '🇨🇺',
-            'entregado': '✅',
-        };
-        return emojis[estado] || '📦';
-    };
+  const pasoActual = resultado ? ORDEN_ESTADOS.indexOf(resultado.estado_clave || 'recibido') : 0;
 
-    const getEstadoLabel = (estado) => {
-        const labels = {
-            'recibido': 'Recibido en Miami',
-            'consolidado': 'Consolidado',
-            'en_transito': 'En Tránsito Aéreo',
-            'en_cuba': 'Llegó a Cuba',
-            'entregado': 'Entregado',
-        };
-        return labels[estado] || estado;
-    };
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(180deg, #001529 0%, #002140 100%)',
+      padding: '40px 16px',
+    }}>
+      <div style={{ maxWidth: 780, margin: '0 auto' }}>
+        {/* Barra superior: volver atrás / iniciar sesión (página pública) */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            style={{ color: 'rgba(255,255,255,0.85)' }}
+            onClick={volver}
+          >
+            Volver
+          </Button>
+          <Button
+            type="text"
+            icon={<LoginOutlined />}
+            style={{ color: 'rgba(255,255,255,0.85)' }}
+            onClick={() => navigate('/login')}
+          >
+            Iniciar sesión
+          </Button>
+        </div>
 
-    const getEstadoColor = (estado) => {
-        const colors = {
-            'recibido': '#faad14',
-            'consolidado': '#1890ff',
-            'en_transito': '#1890ff',
-            'en_cuba': '#13c2c2',
-            'entregado': '#52c41a',
-        };
-        return colors[estado] || '#d9d9d9';
-    };
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ fontSize: 44 }}>📦</div>
+          <h1 style={{ color: '#fff', margin: '8px 0 4px', fontSize: 28 }}>Rastreo de Paquetes</h1>
+          <p style={{ color: 'rgba(255,255,255,0.65)', margin: 0 }}>
+            Miami 305 Travel · Consulte el estado de su envío con el código de su factura
+          </p>
+        </div>
 
-    return (
-        <div>
-            <h1 style={{ marginBottom: '8px' }}>📍 Seguimiento de Envíos</h1>
-            <p style={{ color: '#666', marginBottom: '24px' }}>
-                Ingresa tu código de seguimiento para conocer el estado de tu envío
-            </p>
+        <Card style={{ borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+          <Input.Search
+            size="large"
+            placeholder="Código de seguimiento (ej: PKG-2026-0001)"
+            enterButton={<><SearchOutlined /> Rastrear</>}
+            value={codigo}
+            onChange={(e) => setCodigo(e.target.value)}
+            onSearch={buscar}
+            loading={cargando}
+            autoComplete="off"
+            style={{ marginBottom: 8 }}
+          />
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            El código se entrega en la agencia al registrar el paquete.
+          </Text>
+        </Card>
 
-            <div style={{
-                background: 'white',
-                padding: '32px',
-                borderRadius: '12px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                marginBottom: '24px'
-            }}>
-                <form onSubmit={handleBuscar} style={{
-                    display: 'flex',
-                    gap: '12px',
-                    flexWrap: 'wrap'
-                }}>
-                    <input
-                        type="text"
-                        placeholder="Ej: PKG-2026-0001"
-                        value={codigo}
-                        onChange={(e) => setCodigo(e.target.value)}
-                        style={{
-                            flex: 1,
-                            minWidth: '200px',
-                            padding: '12px 16px',
-                            border: '2px solid #d9d9d9',
-                            borderRadius: '8px',
-                            fontSize: '16px',
-                            transition: 'border-color 0.3s'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#1890ff'}
-                        onBlur={(e) => e.target.style.borderColor = '#d9d9d9'}
-                    />
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        style={{
-                            padding: '12px 32px',
-                            background: loading ? '#d9d9d9' : '#1890ff',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            fontSize: '16px',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            fontWeight: '500'
-                        }}
-                    >
-                        {loading ? '🔍 Buscando...' : '🔍 Buscar'}
-                    </button>
-                </form>
+        {error && (
+          <Card style={{ marginTop: 20, borderRadius: 12 }}>
+            <Result
+              status="warning"
+              title="Sin resultados"
+              subTitle={error}
+            />
+          </Card>
+        )}
 
-                {error && (
-                    <div style={{
-                        background: '#fff2f0',
-                        color: '#ff4d4f',
-                        padding: '12px 16px',
-                        borderRadius: '8px',
-                        marginTop: '16px',
-                        border: '1px solid #ffccc7'
-                    }}>
-                        ❌ {error}
-                    </div>
-                )}
+        {resultado && (
+          <Card style={{ marginTop: 20, borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <Tag color="geekblue" style={{ fontSize: 16, padding: '6px 16px' }}>
+                {resultado.codigo_seguimiento}
+              </Tag>
+              <Tag
+                color={resultado.estado_clave === 'entregado' ? 'green' : 'orange'}
+                style={{ fontSize: 16, padding: '6px 16px' }}
+              >
+                {resultado.estado_actual}
+              </Tag>
             </div>
 
-            {loading && (
-                <div style={{ textAlign: 'center', padding: '40px' }}>
-                    <div style={{ fontSize: '40px', marginBottom: '16px' }}>⏳</div>
-                    <div>Buscando tu envío...</div>
+            {/* Línea de tiempo del estado */}
+            <Steps
+              direction="horizontal"
+              size="small"
+              current={pasoActual < 0 ? 0 : pasoActual}
+              items={ORDEN_ESTADOS.map((e, i) => ({
+                title: NOMBRES_ESTADOS[e],
+                status: i <= pasoActual ? (i === pasoActual ? 'process' : 'finish') : 'wait',
+              }))}
+              style={{ marginBottom: 24 }}
+            />
+
+            <Descriptions bordered size="small" column={1}>
+              <Descriptions.Item label="Destinatario">{resultado.destinatario}</Descriptions.Item>
+              <Descriptions.Item label="Destino">
+                {[resultado.reparto, resultado.municipio, resultado.provincia].filter(Boolean).join(', ')}
+              </Descriptions.Item>
+              <Descriptions.Item label="Peso">{resultado.peso_total_kg} kg</Descriptions.Item>
+              <Descriptions.Item label="Fecha de recepción">
+                {resultado.fecha_recepcion ? new Date(resultado.fecha_recepcion).toLocaleString('es-ES') : '—'}
+              </Descriptions.Item>
+              <Descriptions.Item label="Entrega estimada">
+                {resultado.fecha_entrega_estimada || 'A coordinar'}
+              </Descriptions.Item>
+              {resultado.fecha_entrega_real && (
+                <Descriptions.Item label="Entregado el">
+                  {new Date(resultado.fecha_entrega_real).toLocaleString('es-ES')}
+                </Descriptions.Item>
+              )}
+            </Descriptions>
+
+            {/* Historial de eventos reales */}
+            <h4 style={{ marginTop: 20, marginBottom: 8 }}>🕘 Historial del envío</h4>
+            {(resultado.eventos || []).length > 0 ? (
+              resultado.eventos.map((ev, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex', gap: 12, padding: '10px 0',
+                    borderBottom: '1px solid #f0f0f0',
+                  }}
+                >
+                  <div style={{ color: '#1890ff', fontSize: 18 }}>●</div>
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{ev.tipo_nombre}</div>
+                    <div style={{ color: '#666', fontSize: 13 }}>{ev.descripcion}</div>
+                    <div style={{ color: '#999', fontSize: 12 }}>
+                      {new Date(ev.fecha).toLocaleString('es-ES')} · {ev.ubicacion}
+                    </div>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <Text type="secondary">Sin eventos registrados aún.</Text>
             )}
 
-            {trackingData && !loading && (
-                <div style={{
-                    background: 'white',
-                    padding: '24px',
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-                }}>
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '20px',
-                        flexWrap: 'wrap',
-                        gap: '12px'
-                    }}>
-                        <div>
-                            <h2 style={{ margin: 0 }}>📦 {trackingData.codigo_seguimiento}</h2>
-                            <p style={{ color: '#666', margin: '4px 0 0 0' }}>
-                                Cliente: {trackingData.cliente?.nombre_completo || 'N/A'}
-                            </p>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                            <span style={{
-                                display: 'inline-block',
-                                background: getEstadoColor(trackingData.estado) + '22',
-                                color: getEstadoColor(trackingData.estado),
-                                padding: '4px 16px',
-                                borderRadius: '20px',
-                                fontSize: '14px',
-                                fontWeight: '500'
-                            }}>
-                                {getEstadoEmoji(trackingData.estado)} {getEstadoLabel(trackingData.estado)}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                        gap: '16px',
-                        padding: '16px',
-                        background: '#fafafa',
-                        borderRadius: '8px',
-                        marginBottom: '24px'
-                    }}>
-                        <div>
-                            <div style={{ color: '#666', fontSize: '12px' }}>📦 Peso</div>
-                            <div style={{ fontWeight: '500' }}>{trackingData.peso_kg || 0} kg</div>
-                        </div>
-                        <div>
-                            <div style={{ color: '#666', fontSize: '12px' }}>📍 Origen</div>
-                            <div style={{ fontWeight: '500' }}>Miami, FL</div>
-                        </div>
-                        <div>
-                            <div style={{ color: '#666', fontSize: '12px' }}>🎯 Destino</div>
-                            <div style={{ fontWeight: '500' }}>
-                                {trackingData.destinatario?.provincia || 'N/A'}
-                            </div>
-                        </div>
-                        <div>
-                            <div style={{ color: '#666', fontSize: '12px' }}>💰 Tarifa</div>
-                            <div style={{ fontWeight: '500' }}>${trackingData.tarifa || 0}</div>
-                        </div>
-                    </div>
-
-                    <h3 style={{ marginBottom: '16px' }}>📋 Historial de seguimiento</h3>
-                    <div style={{ position: 'relative', paddingLeft: '24px' }}>
-                        <div style={{
-                            position: 'absolute',
-                            left: '6px',
-                            top: '0',
-                            bottom: '0',
-                            width: '2px',
-                            background: '#e8e8e8'
-                        }} />
-                        {trackingData.historial && trackingData.historial.length > 0 ? (
-                            trackingData.historial.map((evento, index) => (
-                                <div key={index} style={{
-                                    position: 'relative',
-                                    padding: '12px 16px',
-                                    marginBottom: '8px',
-                                    background: '#fafafa',
-                                    borderRadius: '8px',
-                                    borderLeft: '3px solid #1890ff'
-                                }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <span style={{ fontWeight: '500' }}>
-                                            {evento.estado || evento.descripcion || 'Evento'}
-                                        </span>
-                                        <span style={{ fontSize: '12px', color: '#999' }}>
-                                            {evento.fecha ? new Date(evento.fecha).toLocaleString('es-ES') : 'N/A'}
-                                        </span>
-                                    </div>
-                                    {evento.descripcion && (
-                                        <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
-                                            {evento.descripcion}
-                                        </div>
-                                    )}
-                                </div>
-                            ))
-                        ) : (
-                            <div style={{ 
-                                textAlign: 'center', 
-                                padding: '20px',
-                                color: '#999'
-                            }}>
-                                No hay eventos de seguimiento disponibles
-                            </div>
-                        )}
-                    </div>
-                </div>
+            {/* Constancia fotográfica de la entrega (#11/#18) */}
+            {resultado.foto_entrega && (
+              <div style={{ marginTop: 16 }}>
+                <h4 style={{ marginBottom: 8 }}>📷 Constancia de entrega</h4>
+                <img
+                  src={resultado.foto_entrega}
+                  alt="Constancia de entrega"
+                  style={{ maxWidth: 320, borderRadius: 8, border: '1px solid #eee' }}
+                />
+              </div>
             )}
-        </div>
-    );
+
+            <div style={{ marginTop: 20, textAlign: 'center' }}>
+              <Space>
+                <Button icon={<ClearOutlined />} onClick={nuevaConsulta}>
+                  Nueva consulta
+                </Button>
+                {/* Exportar la constancia de rastreo a PDF */}
+                <Button
+                  type="primary"
+                  ghost
+                  icon={<FilePdfOutlined />}
+                  onClick={() => window.open(urlPdfRastreo(resultado.codigo_seguimiento), '_blank')}
+                >
+                  Exportar a PDF
+                </Button>
+              </Space>
+            </div>
+          </Card>
+        )}
+
+        <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.45)', marginTop: 24, fontSize: 12 }}>
+          © {new Date().getFullYear()} Miami 305 Travel — Gracias por elegirnos
+        </p>
+      </div>
+    </div>
+  );
 };
 
 export default TrackingPage;

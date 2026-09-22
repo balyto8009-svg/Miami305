@@ -243,7 +243,9 @@ class Destinatario(models.Model):
 
 class Paquete(models.Model):
     """Modelo de paquete para envío"""
-    
+
+    ORDEN_ESTADOS = ['recibido', 'consolidado', 'en_transito', 'en_cuba', 'entregado']
+
     ESTADOS = [
         ('recibido', 'Recibido en Miami'),
         ('consolidado', 'Consolidado en bulto'),
@@ -251,6 +253,14 @@ class Paquete(models.Model):
         ('en_cuba', 'Llegó a Cuba'),
         ('entregado', 'Entregado al destinatario'),
     ]
+
+    # Categorías de peso (en pesos_categoria JSON): 1=Alimentos, 2=Medicamentos,
+    # 3=Electrodomésticos, 4=Ropa, 5=Otros (misma numeración que apps.core.models.Categoria)
+    CAT_ALIMENTOS = '1'
+    CAT_MEDICAMENTOS = '2'
+    CAT_ELECTRODOMESTICOS = '3'
+    CAT_ROPA = '4'
+    CAT_OTROS = '5'
     
     # Relaciones
     cliente = models.ForeignKey(
@@ -285,7 +295,7 @@ class Paquete(models.Model):
     
     # Datos del paquete
     descripcion = models.TextField(
-        max_length=500,
+        max_length=5000,
         verbose_name='Descripción'
     )
     
@@ -403,3 +413,67 @@ class Paquete(models.Model):
         )
         self.peso_paq_kg = max(self.peso_total_kg - suma_categorias, 0)
         return self.peso_paq_kg
+
+    # ------------------------------------------------------------------
+    # Ciclo de vida del estado
+    # ------------------------------------------------------------------
+    @property
+    def orden_estado(self):
+        try:
+            return self.ORDEN_ESTADOS.index(self.estado)
+        except (ValueError, TypeError):
+            return -1
+
+    @property
+    def bulto_actual(self):
+        """Bulto más reciente al que pertenece el paquete (si está en alguno)."""
+        return self.envios.order_by('-fecha_creacion').first()
+
+    @property
+    def consolidado(self):
+        """True si el paquete está dentro de algún bulto."""
+        return self.envios.exists()
+
+    @property
+    def en_bulto_activo(self):
+        """True si el bulto actual está consolidado o ya en tránsito."""
+        b = self.bulto_actual
+        if not b:
+            return False
+        return (b.estado or '') in ('consolidado', 'en_transito', 'en_cuba', 'entregado')
+
+    @property
+    def transicion_valida(self):
+        """
+        True si el estado actual es coherente con su bulto:
+        - 'recibido'      → sin bulto activo
+        - 'consolidado'   → bulto consolidado
+        - 'en_transito'   → bulto en tránsito
+        - 'en_cuba'/'entregado' → desembalado en Holguín
+        """
+        estado = self.estado or 'recibido'
+        activo = self.en_bulto_activo
+        if estado in ('recibido', 'consolidado', 'en_transito'):
+            return activo if estado != 'recibido' else not activo
+        return True  # en_cuba / entregado
+
+    @property
+    def peso_desglosado(self):
+        """Dict {nombre categoría: peso} desde el JSON pesos_categoria."""
+        detalle = {}
+        try:
+            if not self.pesos_categoria:
+                return detalle
+        except Exception:
+            return detalle
+        try:
+            from apps.core.models.categoria import Categoria
+            for cat_id, peso in self.pesos_categoria.items():
+                try:
+                    cat = Categoria.objects.get(id=int(cat_id))
+                    detalle[cat.nombre] = float(peso)
+                except Exception:
+                    detalle[f'Categoría {cat_id}'] = float(peso)
+        except Exception:
+            pass
+        return detalle

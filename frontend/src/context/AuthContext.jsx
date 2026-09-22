@@ -16,6 +16,49 @@ import { login as apiLogin, logout as apiLogout, getCurrentUser, isAuthenticated
 const AuthContext = createContext(null);
 
 // ==========================================
+// ROLES Y PERMISOS (fuente única para toda la UI)
+// ==========================================
+export const ROLES = {
+    ADMIN: 'admin',
+    SUPERVISOR: 'supervisor',
+    EMPLEADO: 'empleado',      // Personal de Miami
+    HOLGUIN: 'holguin',        // Personal de la sede Holguín
+};
+
+const esAdmin = (user) => ['admin', 'supervisor'].includes(user?.rol);
+const esMiami = (user) => ['admin', 'supervisor', 'empleado'].includes(user?.rol);
+const esHolguin = (user) => user?.rol === 'holguin';
+
+// Matriz de permisos que consume el resto de la interfaz
+export const permisosDe = (user) => ({
+    esAdmin: esAdmin(user),
+    esMiami: esMiami(user),
+    esHolguin: esHolguin(user),
+    // Categorías y tarifas (configuración): solo admin/supervisor
+    gestionarConfiguracion: esAdmin(user),
+    // Usuarios del personal: solo admin/supervisor
+    gestionarUsuarios: esAdmin(user),
+    // Clientes: crear/editar = Miami; eliminar = admin
+    crearClientes: esMiami(user),
+    editarClientes: esMiami(user),
+    eliminarClientes: esAdmin(user),
+    // Destinatarios: crear = Miami; editar = todos; eliminar = admin
+    crearDestinatarios: esMiami(user),
+    editarDestinatarios: esMiami(user) || esHolguin(user),
+    eliminarDestinatarios: esAdmin(user),
+    // Operaciones
+    recibirPaquetes: esMiami(user),          // Gestión de Paquetes
+    confeccionarBultos: esMiami(user),       // Bultos
+    operarHolguin: esHolguin(user) || esAdmin(user), // Operaciones Destino
+    // Seguimiento de Bultos y Registros: todo el personal (#15)
+    verSeguimiento: esMiami(user) || esHolguin(user),
+    verRegistros: esMiami(user) || esHolguin(user),
+    // Mapa de Destinatarios (capa offline): todo el personal
+    verMapaDestinatarios: esMiami(user) || esHolguin(user),
+    verReportes: esAdmin(user),
+});
+
+// ==========================================
 // HOOK PERSONALIZADO
 // ==========================================
 export const useAuth = () => {
@@ -96,6 +139,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         isAuthenticated: !!user && isAuthenticated(),
+        permisos: permisosDe(user),
     };
 
     return (

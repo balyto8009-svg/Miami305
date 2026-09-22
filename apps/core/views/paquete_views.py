@@ -132,6 +132,18 @@ class PaqueteViewSet(viewsets.ModelViewSet):
                 {'error': f'Estado inválido. Opciones: {", ".join(estados_validos.keys())}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        # Corrección #9: el paquete solo puede pasar a 'consolidado' o 'en_transito'
+        # si realmente está dentro de un bulto consolidado/en vuelo. Así se evita
+        # que un paquete "se pierda" al no aparecer en ningún bulto.
+        if nuevo_estado in ('consolidado', 'en_transito') and not paquete.en_bulto_activo:
+            return Response(
+                {'error': (
+                    f'El paquete {paquete.codigo_seguimiento} no pertenece a ningún bulto. '
+                    'Primero debe consolidarse en un bulto (pestaña Bultos & Maletines).'
+                )},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
         try:
             historial = paquete.actualizar_estado(

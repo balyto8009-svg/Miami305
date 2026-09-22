@@ -25,6 +25,9 @@ urlpatterns = [
     # Módulo de tracking
     path('api/tracking/', include('apps.tracking.urls')),
     
+    # Gestión de usuarios del personal (solo admin/supervisor)
+    path('api/users/', include('apps.users.urls')),
+    
     # Redirección de la raíz a la API (opcional)
     path('', RedirectView.as_view(url='/api/', permanent=False)),
 ]

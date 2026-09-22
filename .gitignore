@@ -1,8 +1,58 @@
+# ============================================
+# Python / Django
+# ============================================
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Artefactos generados (collectstatic)
+staticfiles/
+
+# Archivos subidos por el usuario (fotos de bultos y evidencias) y logs
+media/
+logs/
+*.log
+
+# ============================================
+# Frontend (Node / Vite)
+# ============================================
 node_modules/
-.env
-.env.local
 dist/
 build/
 .next/
-*.log
+
+# ============================================
+# Secretos y entorno
+# ============================================
+# Solo la raíz (credenciales reales); frontend/.env es configuración pública
+/.env
+.env.local
+.env.*.local
+
+# ============================================
+# IDE / sistema
+# ============================================
+.idea/
+.vscode/
 .DS_Store
+Thumbs.db
+
+# ============================================
+# Documentos con datos personales (NO versionar)
+# ============================================
+/factura_*.txt
+/factura_*.json
+/facturas_extraidas.*
+/balyto8009-*.txt
+
+# Artefactos de la plataforma Freebuff
+.freebuff/

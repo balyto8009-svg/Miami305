@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from apps.core.models import Destinatario
+from .destinatario_views import _destinatario_json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,15 +26,7 @@ def destinatarios_por_cliente(request, cliente_id):
             cliente_id=cliente_id
         ).order_by('nombre_completo')
         
-        data = [
-            {
-                'id': d.id,
-                'nombre_completo': d.nombre_completo,
-                'telefono': d.telefono,
-                'provincia': d.get_provincia_display()
-            }
-            for d in destinatarios
-        ]
+        data = [_destinatario_json(d) for d in destinatarios]
         
         return JsonResponse(data, safe=False)
         

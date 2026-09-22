@@ -266,23 +266,54 @@ class FacturaService:
         # ✅ METADATOS DEL PAQUETE CON PESO DESGLOSADO
         fecha_str = paquete.fecha_recepcion.strftime("%d/%m/%Y %H:%M") if paquete.fecha_recepcion else "N/A"
         
+        # Fechas de envío y entrega estimada (del envío/bulto si existe)
+        fecha_envio_str = 'Próxima frecuencia aérea'
+        bulto = None
+        try:
+            bulto = paquete.envios.order_by('-fecha_creacion').first()
+        except Exception:
+            bulto = None
+        
+        if bulto and bulto.fecha_salida:
+            fecha_envio_str = bulto.fecha_salida.strftime("%d/%m/%Y")
+        
+        fecha_entrega_str = 'A coordinar'
+        if paquete.fecha_entrega_estimada:
+            fecha_entrega_str = paquete.fecha_entrega_estimada.strftime("%d/%m/%Y")
+        
         # Peso total
         peso_total = paquete.peso_total_kg or 0
         
-        # ✅ Obtener detalle de pesos por categoría
+        # ✅ Detalle de pesos por categoría (corrección #14: agrupados y
+        # separados por coma; el TOTAL va DEBAJO del desglose)
         detalle_pesos = self._obtener_detalle_pesos(paquete)
-        
-        # Construir texto del peso
-        peso_texto = f"<b>Total:</b> {peso_total:.2f} kg"
-        if detalle_pesos:
-            for nombre, peso in detalle_pesos.items():
-                if peso > 0:
-                    peso_texto += f"<br/>{self._sanitizar_texto(nombre)}: {peso:.2f} kg"
+
+        desglose = ", ".join(
+            f"{self._sanitizar_texto(nombre)} {peso:.2f} kg"
+            for nombre, peso in detalle_pesos.items() if peso > 0
+        )
+        if len(detalle_pesos) > 3:
+            nombres = list(detalle_pesos.keys())
+            desglose = (
+                ", ".join(
+                    f"{self._sanitizar_texto(n)} {float(detalle_pesos[n]):.2f} kg" for n in nombres[:2] if detalle_pesos[n] > 0
+                )
+                + "<br/>"
+                + ", ".join(
+                    f"{self._sanitizar_texto(n)} {float(detalle_pesos[n]):.2f} kg" for n in nombres[2:] if detalle_pesos[n] > 0
+                )
+            )
+        peso_texto = ""
+        if desglose:
+            peso_texto += f"<font size=\"8\" color=\"#555555\">{desglose}</font><br/>"
+        peso_texto += f"<b>Peso total:</b> {peso_total:.2f} kg"
         
         metadatos = f"""
         <b>Paquete No:</b> {paquete.id or 'N/A'}<br/>
         <b>Código:</b> {self._sanitizar_texto(paquete.codigo_seguimiento) or 'N/A'}<br/>
-        <b>Fecha:</b> {fecha_str}<br/>
+        <b>Recepción:</b> {fecha_str}<br/>
+        <b>Envío aéreo:</b> {fecha_envio_str}<br/>
+        <b>Entrega aprox.:</b> {fecha_entrega_str}<br/>
         {peso_texto}<br/>
         <b>Tarifa:</b> ${paquete.tarifa or 0:.2f}
         """
@@ -337,14 +368,20 @@ class FacturaService:
             if dest.ci:
                 dest_lineas.append(f"<b>CI:</b> {self._sanitizar_texto(dest.ci)}")
             
+            # Domicilio + reparto + municipio + provincia en UNA línea,
+            # separados por comas. El párrafo corta a la línea siguiente
+            # únicamente cuando el texto no cabe en el ancho de la columna.
+            partes_direccion = []
             if dest.domicilio_exacto:
-                dest_lineas.append(self._sanitizar_texto(dest.domicilio_exacto))
+                partes_direccion.append(self._sanitizar_texto(dest.domicilio_exacto))
             if dest.reparto:
-                dest_lineas.append(self._sanitizar_texto(dest.get_reparto_display()))
+                partes_direccion.append(self._sanitizar_texto(dest.get_reparto_display()))
             if dest.municipio:
-                dest_lineas.append(self._sanitizar_texto(dest.get_municipio_display()))
+                partes_direccion.append(self._sanitizar_texto(dest.get_municipio_display()))
             if dest.provincia:
-                dest_lineas.append(self._sanitizar_texto(dest.get_provincia_display()))
+                partes_direccion.append(self._sanitizar_texto(dest.get_provincia_display()))
+            if partes_direccion:
+                dest_lineas.append(", ".join(partes_direccion))
             
             dest_texto = "<br/>".join(dest_lineas)
             
@@ -409,63 +446,133 @@ class FacturaService:
         return story
 
     def _crear_seccion_descripcion(self, paquete):
+        """
+        RELACIÓN DE ARTÍCULOS: título general de la sección y, debajo,
+        los artículos agrupados en su categoría (contenedor azul por
+        categoría, artículos en dos columnas para ahorrar espacio).
+        """
         story = []
-        
+
         descripcion = paquete.descripcion or 'Sin descripción'
-        lineas = descripcion.split('\n')
-        lineas_limpias = [self._sanitizar_texto(l.strip()) for l in lineas if l.strip()]
-        
-        if lineas_limpias:
-            texto_formateado = "<br/>".join([f"• {l}" for l in lineas_limpias])
+        lineas = [l.strip() for l in descripcion.split('\n') if l.strip()]
+
+        # Agrupar líneas por categoría: "[Nombre - X kg]: artículos".
+        # Los artículos pueden ir separados por COMA o por ENTER: toda línea
+        # posterior a una categoría que no sea otra categoría se considera
+        # un artículo adicional de esa categoría.
+        import re as _re
+        grupos = {}   # nombre -> (kg, [artículos])
+        orden = []
+        sueltas = []
+        ultima_cat = None
+        patron = _re.compile(r'^\[(.+?)\s*-\s*([\d.,]+)\s*kg\]\s*:?\s*(.*)$')
+        for linea in lineas:
+            m = patron.match(linea)
+            if m:
+                nombre_cat = m.group(1).strip()
+                kg = m.group(2).strip()
+                resto = m.group(3) or ''
+                articulos = [a.strip() for a in resto.split(',') if a.strip()]
+                if nombre_cat not in grupos:
+                    grupos[nombre_cat] = (kg, [])
+                    orden.append(nombre_cat)
+                elif kg and not grupos[nombre_cat][0]:
+                    grupos[nombre_cat] = (kg, grupos[nombre_cat][1])
+                grupos[nombre_cat][1].extend(articulos)
+                ultima_cat = nombre_cat
+            else:
+                # Línea suelta: si sigue a una categoría es un artículo
+                # adicional de esa categoría (escrito con Enter); si aparece
+                # antes de cualquier categoría va al bloque de sueltas.
+                destino = grupos[ultima_cat][1] if ultima_cat else sueltas
+                for parte in linea.strip().lstrip('•·-–— ').split(','):
+                    p = parte.strip()
+                    if p:
+                        destino.append(p)
+
+        def _art_par(texto, sufijo):
+            return Paragraph(
+                f"• {self._sanitizar_texto(texto)}" if texto else '',
+                ParagraphStyle(f'Art{sufijo}', parent=self.styles['Normal'],
+                               fontSize=9, leading=13,
+                               textColor=colors.HexColor('#333333'))
+            )
+
+        # Fila 0: título general de la sección (siempre visible)
+        data = [[Paragraph(
+            'RELACIÓN DE ARTÍCULOS',
+            ParagraphStyle('TituloSeccionArt', parent=self.styles['Normal'],
+                           fontSize=11, textColor=colors.white,
+                           fontName='Helvetica-Bold', leftIndent=10, leading=18)
+        ), '']]
+
+        encabezados_cat = []   # filas de encabezado de cada categoría
+        fila_body = None       # fila del cuerpo cuando no hay categorías
+
+        if grupos:
+            fila = 1
+            for nombre_cat in orden:
+                kg, articulos = grupos[nombre_cat]
+                encabezado = f"{nombre_cat}" + (f" — {kg} kg" if kg else "")
+                data.append([
+                    Paragraph(self._sanitizar_texto(encabezado),
+                              ParagraphStyle(f'TitCat{fila}', parent=self.styles['Normal'],
+                                             fontSize=10, textColor=colors.white,
+                                             fontName='Helvetica-Bold', leftIndent=8,
+                                             leading=15)),
+                    ''
+                ])
+                encabezados_cat.append(fila)
+                fila += 1
+
+                mitad = (len(articulos) + 1) // 2
+                col1, col2 = articulos[:mitad], articulos[mitad:]
+                if not col1 and not col2:
+                    col1 = ['']
+                for i in range(max(len(col1), len(col2))):
+                    data.append([
+                        _art_par(col1[i] if i < len(col1) else '', f'A{fila}i{i}'),
+                        _art_par(col2[i] if i < len(col2) else '', f'B{fila}i{i}'),
+                    ])
+                    fila += 1
         else:
-            texto_formateado = self._sanitizar_texto(descripcion)
-        
-        data = [
-            [
-                Paragraph('RELACIÓN DE ARTÍCULOS', ParagraphStyle(
-                    'DescTituloTabla',
-                    parent=self.styles['Normal'],
-                    fontSize=11,
-                    textColor=colors.white,
-                    fontName='Helvetica-Bold',
-                    alignment=TA_LEFT,
-                    leftIndent=10,
-                    leading=18
-                ))
-            ],
-            [
-                Paragraph(texto_formateado, ParagraphStyle(
-                    'DescContenidoTabla',
-                    parent=self.styles['Normal'],
-                    fontSize=10,
-                    textColor=colors.HexColor('#333333'),
-                    leftIndent=10,
-                    leading=16,
-                    wordWrap='CJK'
-                ))
-            ]
+            texto = "<br/>".join(
+                f"• {self._sanitizar_texto(l)}" for l in (sueltas or lineas)
+            )
+            data.append([Paragraph(texto, ParagraphStyle(
+                'DescContenidoTabla', parent=self.styles['Normal'],
+                fontSize=10, textColor=colors.HexColor('#333333'),
+                leading=16, wordWrap='CJK')), ''])
+            fila_body = 1
+
+        tabla = Table(data, colWidths=[3.25 * inch, 3.25 * inch])
+        estilo_base = [
+            ('SPAN', (0, 0), (1, 0)),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#002244')),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('TOPPADDING', (0, 0), (-1, 0), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 5),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#fafafa')),
+            ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#cccccc')),
+            ('INNERGRID', (0, 1), (-1, -1), 0.25, colors.HexColor('#eeeeee')),
+            ('VALIGN', (0, 1), (-1, -1), 'TOP'),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('LEFTPADDING', (0, 1), (-1, -1), 10),
+            ('TOPPADDING', (0, 1), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 3),
         ]
-        
-        tabla_desc = Table(data, colWidths=[6.5*inch])
-        tabla_desc.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#003366')),
-            ('TEXTCOLOR', (0, 0), (0, 0), colors.white),
-            ('FONTNAME', (0, 0), (0, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (0, 0), 11),
-            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
-            ('VALIGN', (0, 0), (0, 0), 'MIDDLE'),
-            ('PADDING', (0, 0), (0, 0), 6),
-            ('BACKGROUND', (0, 1), (0, 1), colors.HexColor('#fafafa')),
-            ('BOX', (0, 1), (0, 1), 1, colors.HexColor('#cccccc')),
-            ('ALIGN', (0, 1), (0, 1), 'LEFT'),
-            ('VALIGN', (0, 1), (0, 1), 'TOP'),
-            ('PADDING', (0, 1), (0, 1), 12),
-            ('WORDWRAP', (0, 1), (0, 1), 'CJK'),
-        ]))
-        
-        story.append(tabla_desc)
-        story.append(Spacer(1, 0.2*inch))
-        
+        estilo_cats = [c
+                       for fila in encabezados_cat
+                       for c in (
+                           ('SPAN', (0, fila), (1, fila)),
+                           ('BACKGROUND', (0, fila), (-1, fila), colors.HexColor('#003366')),
+                       )]
+        estilo_body = [('SPAN', (0, fila_body), (1, fila_body))] if fila_body else []
+
+        tabla.setStyle(TableStyle(estilo_base + estilo_cats + estilo_body))
+
+        story.append(tabla)
+        story.append(Spacer(1, 0.2 * inch))
         return story
 
     def _crear_pie_pagina(self, paquete):
@@ -488,6 +595,12 @@ class FacturaService:
             mapa_texto = '<font color="#888888" size="9">📍 Ubicación no disponible</font>'
         
         codigo_texto = f'<b>Código de seguimiento:</b> {self._sanitizar_texto(paquete.codigo_seguimiento) or "N/A"}'
+        try:
+            bulto_pie = paquete.envios.order_by('-fecha_creacion').first()
+        except Exception:
+            bulto_pie = None
+        if bulto_pie:
+            codigo_texto += f'<br/><font size="9" color="#555555">Bulto: {self._sanitizar_texto(bulto_pie.codigo_bulto)}</font>'
         
         pie_data = [
             [
@@ -505,5 +618,20 @@ class FacturaService:
         ]))
         
         story.append(tabla_pie)
+        
+        # ✅ Mensaje de agradecimiento al pie (corrección #14: frase corta)
+        story.append(Spacer(1, 0.15*inch))
+        story.append(Paragraph(
+            '¡Gracias por elegirnos! ',
+            ParagraphStyle(
+                'Agradecimiento',
+                parent=self.styles['Normal'],
+                fontSize=10,
+                textColor=colors.HexColor('#003366'),
+                fontName='Helvetica-BoldOblique',
+                alignment=TA_CENTER,
+                leading=14
+            )
+        ))
         
         return story

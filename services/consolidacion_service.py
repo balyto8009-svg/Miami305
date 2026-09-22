@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import List, Dict, Optional
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -55,7 +56,7 @@ class ConsolidacionService:
             )
         
         # 3. Calcular peso total y cantidad
-        peso_total = sum(p.peso_kg for p in paquetes)
+        peso_total = sum(p.peso_total_kg or 0 for p in paquetes)
         cantidad = paquetes.count()
         
         # 4. Generar código de bulto único
@@ -66,11 +67,13 @@ class ConsolidacionService:
             codigo_bulto=codigo_bulto,
             fecha_creacion=timezone.now(),
             fecha_salida=datos_envio.get('fecha_salida'),
+            fecha_hora_salida=datos_envio.get('fecha_hora_salida'),
             aerolinea=datos_envio.get('aerolinea', ''),
             numero_guia_aerea=datos_envio.get('numero_guia_aerea', ''),
+            numero_vuelo=datos_envio.get('numero_vuelo', ''),
             peso_total=peso_total,
             cantidad_paquetes=cantidad,
-            estado='pendiente',
+            estado='consolidado',
             creado_por=usuario,
             observaciones=datos_envio.get('observaciones', '')
         )
@@ -114,7 +117,7 @@ class ConsolidacionService:
         
         sugerencias = {}
         for provincia, lista in agrupados.items():
-            peso_total = sum(p.peso_kg for p in lista)
+            peso_total = sum(p.peso_total_kg or 0 for p in lista)
             sugerencias[provincia] = {
                 'cantidad': len(lista),
                 'peso_total': peso_total,

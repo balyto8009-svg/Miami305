@@ -36,6 +36,14 @@ class EventoTracking(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     
+    # Foto de constancia de entrega (con marca de agua estampada)
+    foto_entrega = models.ImageField(
+        upload_to='entregas/evidencias/',
+        null=True,
+        blank=True,
+        verbose_name='Foto de constancia de entrega'
+    )
+
     # Campos de coordenadas (reemplaza el uso de 'datos_extra' para ubicación)
     latitud = models.DecimalField(
         max_digits=10, 

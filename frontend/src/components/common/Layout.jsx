@@ -11,6 +11,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
+import { MARCA } from '../../brand/Brand';
 
 const Layout = () => {
     return (
@@ -21,9 +22,9 @@ const Layout = () => {
             {/* Contenido principal */}
             <div style={{ 
                 flex: 1, 
-                marginLeft: '250px', // Ancho del sidebar
+                marginLeft: '260px', // Ancho del sidebar
                 padding: '24px',
-                background: '#f0f2f5',
+                background: MARCA.arena,
                 minHeight: '100vh'
             }}>
                 {/* Navbar */}

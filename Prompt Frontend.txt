@@ -1,0 +1,6 @@
+Necesito que el frontend sea especifico para cada usuario:
+El administrador de la agencia puede editar y adicionar categorias y tarifas (por categoria y por provincia y municipio)
+El personal de la agencia puede trabajar(CRUD) con los clientes, destinatarios, paquetes, bultos, reportes, etc.
+El personal de Holguin puede leer los reportes, facturas, y todos los otros datos, solo puede modificar las coordenadas de la ubicacion del domicilio.
+El Usuaro (destinatario o cliente) solo puede ver el estado del paquete, su localizacion y su fecha de entrega programada.
+El usuario no necesita una contraseña para logearse, solo el codigo del paquete para ver su estado.

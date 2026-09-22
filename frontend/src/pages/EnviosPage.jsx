@@ -58,7 +58,7 @@ const EnviosPage = () => {
             'recibido': '📋 Recibido',
             'consolidado': '📦 Consolidado',
             'en_transito': '✈️ En Tránsito',
-            'en_cuba': '🇨🇺 En Cuba',
+            'en_cuba': '🌴 En Cuba',
             'entregado': '✅ Entregado',
         };
         return labels[estado] || estado;
@@ -126,7 +126,7 @@ const EnviosPage = () => {
                         <option value="recibido">📋 Recibido</option>
                         <option value="consolidado">📦 Consolidado</option>
                         <option value="en_transito">✈️ En Tránsito</option>
-                        <option value="en_cuba">🇨🇺 En Cuba</option>
+                        <option value="en_cuba">🌴 En Cuba</option>
                         <option value="entregado">✅ Entregado</option>
                     </select>
                     <button

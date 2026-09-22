@@ -16,7 +16,9 @@ class Paquete(models.Model):
     """
     Modelo de paquete para envío a Cuba.
     """
-    
+
+    ORDEN_ESTADOS = ['recibido', 'consolidado', 'en_transito', 'en_cuba', 'entregado']
+
     ESTADOS = [
         ('recibido', 'Recibido en Miami'),
         ('consolidado', 'Consolidado en bulto'),
@@ -24,6 +26,13 @@ class Paquete(models.Model):
         ('en_cuba', 'Llegó a Cuba'),
         ('entregado', 'Entregado al destinatario'),
     ]
+
+    # Claves del JSON pesos_categoria (misma numeración que apps.core.models.Categoria)
+    CAT_ALIMENTOS = '1'
+    CAT_MEDICAMENTOS = '2'
+    CAT_ELECTRODOMESTICOS = '3'
+    CAT_ROPA = '4'
+    CAT_OTROS = '5'
     
     # ==========================================
     # RELACIONES
@@ -65,9 +74,12 @@ class Paquete(models.Model):
     
     # ==========================================
     # DATOS DEL PAQUETE
+    # (5000 caracteres: una factura con decenas de artículos agrupados
+    # por categoría puede necesitar ~1500; el límite anterior de 500
+    # rechazaba paquetes legítimos)
     # ==========================================
     descripcion = models.TextField(
-        max_length=500,
+        max_length=5000,
         blank=True,
         verbose_name='Descripción'
     )
@@ -146,6 +158,16 @@ class Paquete(models.Model):
     )
     
     # ==========================================
+    # FOTO DEL PAQUETE LISTO PARA ENVIAR
+    # ==========================================
+    foto = models.ImageField(
+        upload_to='paquetes/fotos/',
+        null=True,
+        blank=True,
+        verbose_name='Foto del paquete'
+    )
+
+    # ==========================================
     # METADATOS
     # ==========================================
     observaciones = models.TextField(
@@ -194,29 +216,114 @@ class Paquete(models.Model):
     
     def actualizar_estado(self, nuevo_estado, usuario, observacion=''):
         from .historial import HistorialEstado
-        
+
         estado_anterior = self.estado
-        
+
         if estado_anterior == nuevo_estado:
             return None
-        
+
         self.estado = nuevo_estado
-        
+
         if nuevo_estado == 'entregado':
             from django.utils import timezone
             self.fecha_entrega_real = timezone.now()
-        
+
         self.save()
-        
+
+        # El historial exige un Usuario real: con AnonymousUser (peticiones
+        # no autenticadas) usamos el usuario técnico "sistema"
+        usuario_real = usuario
+        if not getattr(usuario, 'is_authenticated', False):
+            from django.contrib.auth import get_user_model
+            UsuarioModel = get_user_model()
+            usuario_real, _ = UsuarioModel.objects.get_or_create(
+                username='sistema',
+                defaults={'first_name': 'Sistema', 'rol': 'empleado'},
+            )
+
         historial = HistorialEstado.objects.create(
             paquete=self,
             estado_anterior=estado_anterior,
             estado_nuevo=nuevo_estado,
-            usuario=usuario,
+            usuario=usuario_real,
             observacion=observacion
         )
-        
+
         return historial
     
     def get_estado_display(self):
         return dict(self.ESTADOS).get(self.estado, self.estado)
+
+    # ------------------------------------------------------------------
+    # Ciclo de vida del estado (fuente única de verdad del flujo)
+    # ------------------------------------------------------------------
+    @property
+    def orden_estado(self):
+        try:
+            return self.ORDEN_ESTADOS.index(self.estado)
+        except (ValueError, TypeError):
+            return -1
+
+    @property
+    def bulto_actual(self):
+        """Bulto más reciente al que pertenece el paquete (si está en alguno)."""
+        return self.envios.order_by('-fecha_creacion').first()
+
+    @property
+    def consolidado(self):
+        """True si el paquete está dentro de algún bulto."""
+        return self.envios.exists()
+
+    @property
+    def en_bulto_activo(self):
+        """True si el bulto actual está consolidado o más adelante en el flujo."""
+        b = self.bulto_actual
+        if not b:
+            return False
+        return (b.estado or '') in ('consolidado', 'en_curso', 'completado', 'cancelado')
+
+    @property
+    def transicion_valida(self):
+        """
+        Coherencia estado del paquete ↔ bulto:
+        - 'recibido'    → sin bulto activo
+        - 'consolidado' → bulto consolidado
+        - 'en_transito' → bulto en tránsito
+        - 'en_cuba'/'entregado' → desembalado en Holguín
+        """
+        estado = self.estado or 'recibido'
+        activo = self.en_bulto_activo
+        if estado == 'recibido':
+            return not activo
+        if estado in ('consolidado', 'en_transito'):
+            return activo
+        return True
+
+    @property
+    def peso_desglosado(self):
+        """Dict {nombre categoría: peso} desde el JSON pesos_categoria."""
+        detalle = {}
+        try:
+            if not self.pesos_categoria:
+                return detalle
+        except Exception:
+            return detalle
+        try:
+            from .categoria import Categoria
+            for cat_id, peso in self.pesos_categoria.items():
+                try:
+                    cat = Categoria.objects.get(id=int(cat_id))
+                    detalle[cat.nombre] = float(peso)
+                except Exception:
+                    detalle[f'Categoría {cat_id}'] = float(peso)
+        except Exception:
+            pass
+        return detalle
+
+    @property
+    def fecha_salida_vuelo(self):
+        """Fecha/hora programada de salida del vuelo (del bulto actual)."""
+        b = self.bulto_actual
+        if b and b.fecha_salida:
+            return b.fecha_salida
+        return None

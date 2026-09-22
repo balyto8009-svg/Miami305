@@ -1,6 +1,6 @@
 from django.db import models
 from .paquete import Paquete
-#from .paquete import Ãltima actualización
+#Ãltima actualización
 from .envio import Envio
 
 class PaqueteEnvio(models.Model):
