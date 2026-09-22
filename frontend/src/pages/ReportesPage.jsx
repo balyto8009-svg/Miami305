@@ -197,7 +197,7 @@ const ReportesPage = () => {
                 }}>
                     <div style={{ color: '#666', fontSize: '14px' }}>📊 Promedio por día</div>
                     <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#faad14' }}>
-                        {reportes.estadisticas.promedioEnviosPorDia.toFixed(1)}
+                        {Number(reportes.estadisticas.promedioEnviosPorDia ?? 0).toFixed(1)}
                     </div>
                 </div>
                 <div style={{
@@ -209,7 +209,7 @@ const ReportesPage = () => {
                 }}>
                     <div style={{ color: '#666', fontSize: '14px' }}>💰 Ingresos Totales</div>
                     <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#13c2c2' }}>
-                        ${reportes.estadisticas.ingresosTotales.toFixed(2)}
+                        ${Number(reportes.estadisticas.ingresosTotales ?? 0).toFixed(2)}
                     </div>
                 </div>
             </div>

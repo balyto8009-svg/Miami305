@@ -7,8 +7,9 @@
  */
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { hogarPorRol } from '../components/common/RoleRoute';
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
@@ -27,7 +28,8 @@ const LoginPage = () => {
             const result = await login(username, password);
             
             if (result && result.success) {
-                navigate('/dashboard', { replace: true });
+                // Cada rol aterriza en su panel propio (Holguín → /holguin)
+                navigate(hogarPorRol(result.user), { replace: true });
             } else {
                 setError(result?.error || 'Credenciales inválidas');
             }
@@ -161,6 +163,23 @@ const LoginPage = () => {
                         {loading ? '🔄 Iniciando sesión...' : 'Iniciar Sesión'}
                     </button>
                 </form>
+
+                {/* Acceso público al localizador de paquetes */}
+                <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                    <Link
+                        to="/tracking"
+                        style={{
+                            color: '#1890ff',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            textDecoration: 'none',
+                        }}
+                        onMouseEnter={(e) => (e.target.style.textDecoration = 'underline')}
+                        onMouseLeave={(e) => (e.target.style.textDecoration = 'none')}
+                    >
+                        📦 ¿Solo quieres rastrear tu paquete? Localizador público →
+                    </Link>
+                </div>
 
                 {/* Botón de debug (opcional) */}
                 <div style={{ marginTop: '16px', textAlign: 'center' }}>

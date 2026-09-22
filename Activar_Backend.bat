@@ -4,12 +4,12 @@ echo   MIAMI305 - Sistema de Envios a Cuba
 echo ========================================
 echo.
 echo Accediendo a la carpete del proyecto...
-echo d:\Universidad\Tesis\Miami305\
+echo d:\Universidad\Tesis\Freebuff\
 d:
-cd \Universidad\Tesis\Miami305\
+cd d:\Universidad\Tesis\Freebuff\
 echo.
 echo Activando entorno virtual...
-call D:\Universidad\Tesis\Miami305\venv\Scripts\activate.bat
+call d:\Universidad\Tesis\Freebuff\venv\Scripts\activate.bat
 echo.
 echo Entorno activado correctamente!
 echo.

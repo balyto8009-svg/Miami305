@@ -1,355 +1,175 @@
-/**
- * frontend/src/pages/Dashboard.jsx
- * Ubicación: Miami305/frontend/src/pages/Dashboard.jsx
- * 
- * DESCRIPCIÓN:
- * Página principal del dashboard con estadísticas y resumen del sistema.
- */
+// frontend/src/pages/Dashboard.jsx
+// Panel Principal.
+// Corrección #16: datos reales desde el backend y "Últimos paquetes"
+// muestra todos los paquetes que NO han llegado a entregarse.
+import React, { useEffect, useState } from 'react';
+import { Row, Col, Card, Statistic, Table, Tag, Badge, message, Spin } from 'antd';
+import {
+  InboxOutlined, DatabaseOutlined, UserOutlined, DollarOutlined,
+  SendOutlined, CheckCircleOutlined,
+} from '@ant-design/icons';
+import { getStats, getPaquetes } from '../api/apiService';
+import { useNavigate } from 'react-router-dom';
 
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-    getStats, 
-    getPaquetes, 
-    getReporteResumen,
-    getCurrentUser 
-} from '../api/apiService';
-
-// ==========================================
-// COMPONENTE DE TARJETA DE ESTADÍSTICA
-// ==========================================
-const StatCard = ({ icon, title, value, color, subtitle }) => {
-    const colors = {
-        blue: 'bg-blue-100 text-blue-600',
-        green: 'bg-green-100 text-green-600',
-        yellow: 'bg-yellow-100 text-yellow-600',
-        red: 'bg-red-100 text-red-600',
-        purple: 'bg-purple-100 text-purple-600',
-        indigo: 'bg-indigo-100 text-indigo-600',
-    };
-
-    return (
-        <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                        {title}
-                    </p>
-                    <p className="text-2xl font-bold text-gray-800 mt-1">
-                        {value !== undefined ? value : '-'}
-                    </p>
-                    {subtitle && (
-                        <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
-                    )}
-                </div>
-                <div className={`p-3 rounded-full ${colors[color] || colors.blue}`}>
-                    <span className="text-xl">{icon}</span>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// ==========================================
-// COMPONENTE PRINCIPAL DASHBOARD
-// ==========================================
 const Dashboard = () => {
-    const [stats, setStats] = useState(null);
-    const [reporteResumen, setReporteResumen] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const [stats, setStats] = useState(null);
+  const [paquetesPendientes, setPaquetesPendientes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    // ==========================================
-    // CARGAR DATOS
-    // ==========================================
-    useEffect(() => {
-        // Obtener usuario actual
-        const currentUser = getCurrentUser();
-        setUser(currentUser);
+  useEffect(() => {
+    const cargar = async () => {
+      setLoading(true);
+      try {
+        // Datos reales del backend
+        const res = await getStats();
+        setStats(res);
 
-        // Cargar datos
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-				
-				console.log('📊 Intentando obtener estadísticas...');
-                console.log('  Token:', localStorage.getItem('access_token') ? '✅' : '❌');
+        // Corrección #16: todos los paquetes no entregados, más recientes primero
+        const data = await getPaquetes({});
+        const lista = data.results || data || [];
+        setPaquetesPendientes(lista.filter(p => p.estado !== 'entregado'));
+      } catch (err) {
+        console.error('Error al cargar el dashboard:', err);
+        message.error('Error al cargar los datos del panel');
+      } finally {
+        setLoading(false);
+      }
+    };
+    cargar();
+  }, []);
 
-                // Obtener estadísticas del dashboard
-                const statsData = await getStats();
-                setStats(statsData);
+  const getEstadoColor = (estado) => ({
+    recibido: 'blue',
+    consolidado: 'purple',
+    en_transito: 'orange',
+    en_cuba: 'cyan',
+    entregado: 'green',
+  }[estado] || 'default');
 
-                // Obtener resumen de reportes (opcional)
-                try {
-                    const resumenData = await getReporteResumen();
-                    setReporteResumen(resumenData);
-                } catch (reportErr) {
-                    console.log('⚠️ Reportes no disponibles:', reportErr.message);
-                }
+  const getEstadoBadge = (estado) => ({
+    recibido: '📋 Recibido',
+    consolidado: '📦 Consolidado',
+    en_transito: '✈️ En Tránsito',
+    en_cuba: '🇨🇺 En Cuba',
+    entregado: '✅ Entregado',
+  }[estado] || estado);
 
-            } catch (err) {
-                console.error('❌ Error al cargar datos del dashboard:', err);
-                
-                if (err.response) {
-                    if (err.response.status === 403) {
-                        setError('No tienes permisos para ver el dashboard. Contacta al administrador.');
-                    } else if (err.response.status === 401) {
-                        setError('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-                        // Redirigir al login después de un momento
-                        setTimeout(() => {
-                            window.location.href = '/login';
-                        }, 2000);
-                    } else {
-                        setError(`Error del servidor: ${err.response.data?.error || err.response.status}`);
-                    }
-                } else if (err.request) {
-                    setError('No se pudo conectar con el servidor. Verifica tu conexión.');
-                } else {
-                    setError(`Error: ${err.message}`);
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
+  const columns = [
+    {
+      title: 'Código',
+      dataIndex: 'codigo_seguimiento',
+      key: 'codigo',
+      render: (t) => <strong>{t}</strong>,
+    },
+    {
+      title: 'Cliente',
+      dataIndex: ['cliente', 'nombre_completo'],
+      key: 'cliente',
+      render: (t) => t || 'N/A',
+    },
+    {
+      title: 'Destinatario',
+      dataIndex: ['destinatario', 'nombre_completo'],
+      key: 'destinatario',
+      render: (t) => t || 'N/A',
+    },
+    {
+      title: 'Peso (kg)',
+      dataIndex: 'peso_total_kg',
+      key: 'peso',
+      render: (v) => `${v || 0} kg`,
+    },
+    {
+      title: 'Estado',
+      dataIndex: 'estado',
+      key: 'estado',
+      render: (estado) => (
+        <Badge color={getEstadoColor(estado)} text={getEstadoBadge(estado)} />
+      ),
+    },
+    {
+      title: 'Fecha',
+      dataIndex: 'fecha_recepcion',
+      key: 'fecha',
+      render: (f) => (f ? new Date(f).toLocaleDateString('es-ES') : '—'),
+    },
+  ];
 
-        fetchData();
-    }, []);
+  // Mapeo flexible de claves del backend (varios formatos históricos)
+  const s = stats || {};
+  const recibidos = s.paquetes_recibidos ?? s.recibidos ?? 0;
+  const enCurso = (s.paquetes_en_transito ?? s.en_transito ?? 0) + (s.paquetes_consolidados ?? s.consolidados ?? 0);
+  const enCuba = s.paquetes_en_cuba ?? s.en_cuba ?? 0;
+  const entregados = s.paquetes_entregados ?? s.entregados ?? 0;
+  const totalClientes = s.total_clientes ?? s.clientes ?? 0;
+  const ingresos = Number(s.ingresos_totales ?? s.ingresos_mes ?? s.ingresos ?? 0);
+  const bultosActivos = s.bultos_activos ?? null;
 
-    // ==========================================
-    // ESTADO DE CARGA
-    // ==========================================
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
-                    <p className="mt-4 text-gray-600">Cargando dashboard...</p>
-                </div>
-            </div>
-        );
-    }
+  return (
+    <div style={{ padding: 24, backgroundColor: '#f4f6f9', minHeight: '100vh' }}>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ margin: 0, fontWeight: 700, color: '#001529' }}>📊 Panel Principal</h2>
+        <p style={{ color: '#666', margin: 0 }}>Estado operativo en tiempo real de la agencia.</p>
+      </div>
 
-    // ==========================================
-    // ESTADO DE ERROR
-    // ==========================================
-    if (error) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
-                    <div className="text-5xl mb-4">⚠️</div>
-                    <h2 className="text-xl font-bold text-red-600 mb-2">Error al cargar el dashboard</h2>
-                    <p className="text-gray-600 mb-4">{error}</p>
-                    <button
-                        onClick={() => window.location.reload()}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        Reintentar
-                    </button>
-                </div>
-            </div>
-        );
-    }
+      <Spin spinning={loading}>
+        <Row gutter={[16, 16]}>
+          <Col xs={12} sm={8} md={4}>
+            <Card>
+              <Statistic title="Paquetes Recibidos" value={recibidos} prefix={<InboxOutlined />} valueStyle={{ color: '#1890ff' }} />
+            </Card>
+          </Col>
+          <Col xs={12} sm={8} md={4}>
+            <Card>
+              <Statistic title="En Curso (bulto/vuelo)" value={enCurso} prefix={<SendOutlined />} valueStyle={{ color: '#722ed1' }} />
+            </Card>
+          </Col>
+          <Col xs={12} sm={8} md={4}>
+            <Card>
+              <Statistic title="En Cuba (por entregar)" value={enCuba} prefix={<DatabaseOutlined />} valueStyle={{ color: '#13c2c2' }} />
+            </Card>
+          </Col>
+          <Col xs={12} sm={8} md={4}>
+            <Card>
+              <Statistic title="Entregados" value={entregados} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} />
+            </Card>
+          </Col>
+          <Col xs={12} sm={8} md={4}>
+            <Card>
+              <Statistic title="Clientes" value={totalClientes} prefix={<UserOutlined />} valueStyle={{ color: '#fa8c16' }} />
+            </Card>
+          </Col>
+          <Col xs={12} sm={8} md={4}>
+            <Card>
+              <Statistic title="Ingresos ($)" value={ingresos} precision={2} prefix={<DollarOutlined />} valueStyle={{ color: '#389e0d' }} />
+            </Card>
+          </Col>
+        </Row>
 
-    // ==========================================
-    // RENDERIZAR DASHBOARD
-    // ==========================================
-    return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-            {/* ==========================================
-                ENCABEZADO
-                ========================================== */}
-            <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                            Dashboard
-                        </h1>
-                        <p className="text-gray-500 text-sm">
-                            {user ? `Bienvenido, ${user.nombre_completo || user.username}` : 'Bienvenido'}
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3 mt-3 md:mt-0">
-                        <span className="text-sm text-gray-500">
-                            Última actualización: {new Date().toLocaleString()}
-                        </span>
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
-                        >
-                            🔄
-                        </button>
-                    </div>
-                </div>
+        {bultosActivos !== null && (
+          <Card style={{ marginTop: 16, borderRadius: 8 }}>
+            <Statistic title="Bultos activos (consolidados / en vuelo)" value={bultosActivos} prefix={<SendOutlined />} />
+          </Card>
+        )}
 
-                {/* ==========================================
-                    TARJETAS DE ESTADÍSTICAS
-                    ========================================== */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <StatCard
-                        icon="📦"
-                        title="Total Envíos"
-                        value={stats?.total_envios || 0}
-                        color="blue"
-                    />
-                    <StatCard
-                        icon="👤"
-                        title="Total Clientes"
-                        value={stats?.total_clientes || 0}
-                        color="green"
-                    />
-                    <StatCard
-                        icon="⏳"
-                        title="Pendientes"
-                        value={stats?.pendientes || 0}
-                        color="yellow"
-                        subtitle={`Consolidados: ${stats?.consolidados || 0}`}
-                    />
-                    <StatCard
-                        icon="💰"
-                        title="Ingresos del Mes"
-                        value={`$${stats?.ingresos_mes?.toFixed(2) || '0.00'}`}
-                        color="purple"
-                    />
-                </div>
-
-                {/* ==========================================
-                    SEGUNDA FILA - MÁS ESTADÍSTICAS
-                    ========================================== */}
-                {reporteResumen && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <StatCard
-                            icon="📊"
-                            title="Total Ingresos"
-                            value={`$${reporteResumen?.ingresos_totales?.toFixed(2) || '0.00'}`}
-                            color="indigo"
-                        />
-                        <StatCard
-                            icon="📈"
-                            title="Promedio por Día (30d)"
-                            value={reporteResumen?.promedio_por_dia || 0}
-                            color="green"
-                        />
-                        <StatCard
-                            icon="✈️"
-                            title="En Tránsito"
-                            value={stats?.en_transito || 0}
-                            color="red"
-                        />
-                        <StatCard
-                            icon="✅"
-                            title="Entregados"
-                            value={stats?.entregados || 0}
-                            color="green"
-                        />
-                    </div>
-                )}
-
-                {/* ==========================================
-                    GRÁFICOS Y TABLAS (OPCIONAL)
-                    ========================================== */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Envíos por estado */}
-                    <div className="bg-white rounded-xl shadow-md p-6">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                            📊 Envíos por Estado
-                        </h3>
-                        <div className="space-y-3">
-                            {stats && (
-                                <>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-600">Recibidos</span>
-                                        <span className="font-bold text-gray-800">{stats.recibidos || 0}</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div 
-                                            className="bg-blue-500 rounded-full h-2" 
-                                            style={{ width: `${stats.total_envios ? ((stats.recibidos || 0) / stats.total_envios) * 100 : 0}%` }}
-                                        ></div>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-600">Consolidados</span>
-                                        <span className="font-bold text-gray-800">{stats.consolidados || 0}</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div 
-                                            className="bg-yellow-500 rounded-full h-2" 
-                                            style={{ width: `${stats.total_envios ? ((stats.consolidados || 0) / stats.total_envios) * 100 : 0}%` }}
-                                        ></div>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-600">En Tránsito</span>
-                                        <span className="font-bold text-gray-800">{stats.en_transito || 0}</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div 
-                                            className="bg-purple-500 rounded-full h-2" 
-                                            style={{ width: `${stats.total_envios ? ((stats.en_transito || 0) / stats.total_envios) * 100 : 0}%` }}
-                                        ></div>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-600">Entregados</span>
-                                        <span className="font-bold text-gray-800">{stats.entregados || 0}</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div 
-                                            className="bg-green-500 rounded-full h-2" 
-                                            style={{ width: `${stats.total_envios ? ((stats.entregados || 0) / stats.total_envios) * 100 : 0}%` }}
-                                        ></div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Acciones rápidas */}
-                    <div className="bg-white rounded-xl shadow-md p-6">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                            ⚡ Acciones Rápidas
-                        </h3>
-                        <div className="grid grid-cols-2 gap-3">
-                            <Link
-                                to="/paquetes"
-                                className="flex flex-col items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                            >
-                                <span className="text-2xl">📦</span>
-                                <span className="text-sm font-medium text-gray-700 mt-1">Ver Paquetes</span>
-                            </Link>
-                            <Link
-                                to="/clientes"
-                                className="flex flex-col items-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
-                            >
-                                <span className="text-2xl">👤</span>
-                                <span className="text-sm font-medium text-gray-700 mt-1">Clientes</span>
-                            </Link>
-                            <Link
-                                to="/reportes"
-                                className="flex flex-col items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
-                            >
-                                <span className="text-2xl">📊</span>
-                                <span className="text-sm font-medium text-gray-700 mt-1">Reportes</span>
-                            </Link>
-                            <Link
-                                to="/tracking"
-                                className="flex flex-col items-center p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors"
-                            >
-                                <span className="text-2xl">🔍</span>
-                                <span className="text-sm font-medium text-gray-700 mt-1">Tracking</span>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ==========================================
-                    PIE DE PÁGINA
-                    ========================================== */}
-                <div className="mt-8 text-center text-sm text-gray-400 border-t border-gray-200 pt-4">
-                    Miami305 Envíos - Sistema de Gestión v1.0
-                </div>
-            </div>
-        </div>
-    );
+        <Card
+          title="📦 Paquetes sin entregar"
+          style={{ marginTop: 16, borderRadius: 8 }}
+          extra={<a onClick={() => navigate('/paquetes')}>Ver todos en Gestión de Paquetes</a>}
+        >
+          <Table
+            columns={columns}
+            dataSource={paquetesPendientes}
+            rowKey="id"
+            size="small"
+            loading={loading}
+            pagination={{ pageSize: 8, showTotal: (t) => `${t} paquetes pendientes de entrega` }}
+          />
+        </Card>
+      </Spin>
+    </div>
+  );
 };
 
 export default Dashboard;

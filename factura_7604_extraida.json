@@ -1,0 +1,61 @@
+{
+  "_fuente": "Factura escaneada (WhatsApp Image 2026-09-20 at 4.20.06 PM.jpeg) - sistema antiguo",
+  "_companera": "Véase factura_7607_extraida.txt para la segunda factura (nro 7607) en formato plano",
+  "empresa": {
+    "nombre": "MIAMI 305 TRAVEL",
+    "direccion": "9160 NW 122ND ST, HIALEAH GARDENS, FL 33018",
+    "telefono": "305-440-5171",
+    "email": "MIAMI305TRAVEL@GMAIL.COM"
+  },
+  "factura": {
+    "envio": "12-1",
+    "paquete_no": "7604",
+    "fecha": "2026-09-17 15:23",
+    "peso_lbs": 24.60,
+    "detalle_tarifa_lbs": {
+      "paq_lbs": 14.6,
+      "paq_precio_usd": 102.20,
+      "ali_lbs": 10.0,
+      "ali_precio_usd": null,
+      "nota": "Paq.Lbs. 14.6 $102.2  Ali.Lbs. 10 $ (monto de alimentos ilegible en el escaneo)"
+    },
+    "precio_total_usd": 167.20,
+    "entrega": null,
+    "valor_aduanal": "Incluido"
+  },
+  "remitente": {
+    "nombre_completo": "IDANIA SALINAS",
+    "telefono": "786-474-0118",
+    "domicilio": null,
+    "driver_license": "campo presente sin valor visible"
+  },
+  "destinatario": {
+    "nombre_completo": "NEREIDA MEDINA LEYVA",
+    "domicilio_exacto": "MIRAMAR #29 ALTOS ENTRE FREXES Y MARTI",
+    "reparto": "VISTA ALEGRE",
+    "reparto_codigo_sistema": "VAL",
+    "provincia": "HOLGUIN",
+    "provincia_codigo_sistema": "HOL",
+    "telefono_fijo": "24452473",
+    "telefono_movil": "53676511",
+    "servicio": "(Regular)"
+  },
+  "articulos": [
+    {"cantidad": 2, "unidad": "latas", "descripcion": "COMIDA PARA GATO", "categoria_sugerida": "Alimentos"},
+    {"cantidad": 4, "unidad": "paq", "descripcion": "REFRESCO GUAMA", "categoria_sugerida": "Alimentos"},
+    {"cantidad": 1, "unidad": "paq", "descripcion": "LECHE EN POLVO GUAMA", "categoria_sugerida": "Alimentos"},
+    {"cantidad": 3, "unidad": "paq", "descripcion": "SOBRES DE TE", "categoria_sugerida": "Alimentos"},
+    {"cantidad": 2, "unidad": "paq", "descripcion": "COMINO EN GRANO BADIA", "categoria_sugerida": "Alimentos"},
+    {"cantidad": 2, "unidad": "paq", "descripcion": "COMINO MOLIDO BADIA", "categoria_sugerida": "Alimentos"},
+    {"cantidad": 2, "unidad": "bolsas", "descripcion": "BOLSAS GRANDES", "categoria_sugerida": "Otros"},
+    {"cantidad": 1, "unidad": "shampoo", "descripcion": "LENDREX KILLS LICE", "categoria_sugerida": "Otros"},
+    {"cantidad": 1, "unidad": "pomo", "descripcion": "GUMMY VITE MULTIVITAMIN CON 70 GOMITAS L'IL CRITTERS", "categoria_sugerida": "Medicamentos"}
+  ],
+  "_companera_completa": "Véase factura_7604_completa.txt: la segunda hoja de esta misma factura trae los 42 artículos (ropa, calzado, medicamentos); este JSON solo refleja la primera hoja",
+  "conversiones": {
+    "peso_total_kg": 11.16,
+    "alimentos_kg": 4.54,
+    "paqueteria_otros_kg": 6.62,
+    "nota": "La factura antigua trabaja en libras: total 24.6 lbs = Ali 10 lbs + Paq 14.6 lbs (1 lb = 0.4536 kg). Los kg por categoría son estimados a partir de ese reparto; el desglose real por artículo no viene en la factura."
+  }
+}

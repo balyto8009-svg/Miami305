@@ -37,6 +37,8 @@ class HistorialEstado(models.Model):
         User,
         on_delete=models.PROTECT,
         related_name='cambios_estado',
+        null=True,
+        blank=True,
         verbose_name='Usuario'
     )
     fecha_cambio = models.DateTimeField(

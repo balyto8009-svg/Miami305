@@ -1,0 +1,32 @@
+1. En la pestaña Destinatarios vinculados a: en la lista de destinatarios vinculados las acciones editar y eliminar se salen
+del marco.
+2. Los clientes no necesariamente tienen que ser de Miami, en la pagina de registro aparece ¨en Miami¨, elimina esto.
+3. Al agregar un destinatario o editarlo solo aparece la provincia Holguin y el municipio Holguin en la lista desplegable, 
+son los que deben salir por defecto pero necesito poder cambiarlos por las provincias activas y si es holguin poder cambiar
+los municipios. El campo Puntos de referencia no debe ser obligatorio.
+4. Necesito que no me salgan las autocompletaciones en los campos.
+5. En el Sidebar cambiar Operaciones Holguin por Operaciones Destino y Recepcion Miami por Gestion de Paquetes.
+6. En la Gestion de Paquetes necesito poder editar los paquetes, tampoco tengo aceso a seleccionarlos para consolidarlos.
+7. En la creacion o edicion de un paquete las categorias del paquete deben ser clicleables o por checkbox.
+8. En la etiqueta elimina ENVÍOS MIAMI - HOLGUÍN, la palabra BULTO:, Cantidad de Paquetes y Cada paquete hereda este código.
+9. El orden de los estados de los paquetes es recivido, consolidado, en transito, en cuba y entregado; cuando se crea el 
+paquete aparece la accion de ponerlo en transito sin antes haber sido consolidado, eso es incorrecto porque puede perderse 
+el paquete al no aparecer en ningun bulto.
+10. Al declarar el transporte y numero de vuelo al confeccionar el bulto me de la opcion de poner La fecha de salida del 
+vuelo y la hora aproximada; al alcanzar esta hora el estado del bulto y paquete debe pasar a en transito automaticamente 
+a no ser que se cancele de forma manual el envio ( ver como ponemos esa opcion en las acciones).
+11. Al ver los detalles en la gestion de los paquetes no me sale ninguna foto, ni la de recepcion del paquete ni la de la 
+entrega cuando este ya se halla entregado. Lo mismo pasa con la recepcion del bulto en holguin, no se muestran las fotos 
+ni del bulto ni de los paquetes.
+12. La paguina de reportes me da este error: Request failed with status code 404.
+13. Al recibir los paquetes en holguin se pondra automaticamente en el sistema una fecha de entrega aproximada de los 
+paquetes dentro de los proximos tres dias.
+14. En la Factura el peso total debajo de los pesos por categorias, y estas agupadas y separadas por coma. En la relacion 
+de articulos crea contenedores por categorias y crea dos columnas para ahorrar espacio y en la frace ¨Gracias por elegirnos 
+como su agencia de envios¨ quita como su agencia de envios.
+15. Crea una paguina para ver la lista de los bultos que estan consolidados y en transito con todos sus detalles; y una 
+pagina de registros.
+16. El panel principal no me esta mostrando los datos reales, y en los ultimos paquetes registrados quiero que me muestres
+todos los paquetes que no han llegado a entregarse.
+17. En los grupos del backend no aparece nada, creo que estos deberian ser los roles, no?
+18. El rastreador de paquetes no da los datos reales ni muestra su estado.

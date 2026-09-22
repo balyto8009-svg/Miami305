@@ -16,10 +16,11 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum, Q, Avg
 from django.http import JsonResponse
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 
 # Importación corregida: dos puntos para subir un nivel
 from ..models import Cliente, Paquete
+from ..permissions.roles import requiere_rol, ROLES_ADMIN, ROLES_MIAMI
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -30,6 +31,7 @@ User = get_user_model()
 # ==========================================
 
 @csrf_exempt
+@ensure_csrf_cookie  # Garantiza que la cookie csrftoken se emita al iniciar sesión
 def login_view(request):
     """Endpoint para iniciar sesión"""
     if request.method != 'POST':
@@ -84,6 +86,20 @@ def login_view(request):
 
 
 # ==========================================
+# CSRF
+# ==========================================
+
+@ensure_csrf_cookie
+def csrf_view(request):
+    """
+    Entrega la cookie csrftoken al frontend.
+    Permite auto-sanar sesiones iniciadas antes de activar la protección CSRF
+    (evita el 403 'CSRF Failed: CSRF token missing.') sin necesidad de reloguear.
+    """
+    return JsonResponse({'detalle': 'Cookie CSRF emitida'})
+
+
+# ==========================================
 # DASHBOARD / ESTADÍSTICAS
 # ==========================================
 
@@ -110,14 +126,36 @@ def stats_view(request):
             fecha_recepcion__date__lte=hoy
         ).aggregate(total=Sum('tarifa'))['total'] or 0
         
+        # Corrección #16: ingresos reales de TODOS los paquetes registrados
+        # y bultos activos (consolidados/en vuelo) para el Panel Principal
+        from apps.core.models import Envio
+        ingresos_totales = Paquete.objects.aggregate(
+            total=Sum('tarifa')
+        )['total'] or 0
+        bultos_activos = Envio.objects.filter(
+            estado__in=['consolidado', 'en_curso']
+        ).count()
+
         return JsonResponse({
             'total_clientes': total_clientes,
             'total_envios': total_envios,
+            # Claves usadas por el Dashboard del frontend
+            'paquetes_recibidos': pendientes,
+            'recibidos': pendientes,
+            'recibido': pendientes,
             'pendientes': pendientes,
+            'paquetes_consolidados': consolidados,
             'consolidados': consolidados,
+            'consolidado': consolidados,
+            'paquetes_en_transito': en_transito,
             'en_transito': en_transito,
+            'paquetes_en_cuba': en_cuba,
             'en_cuba': en_cuba,
+            'paquetes_entregados': entregados,
             'entregados': entregados,
+            'entregado': entregados,
+            'bultos_activos': bultos_activos,
+            'ingresos_totales': float(ingresos_totales),
             'ingresos_mes': float(ingresos_mes),
         })
         
@@ -173,9 +211,11 @@ def envios_list_view(request):
                     'nombre_completo': paquete.destinatario.nombre_completo,
                     'provincia': paquete.destinatario.get_provincia_display(),
                 } if paquete.destinatario else None,
-                'peso_kg': float(paquete.peso_kg),
+                'peso_kg': float(paquete.peso_total_kg or 0),
+                'peso_total_kg': float(paquete.peso_total_kg or 0),
                 'tarifa': float(paquete.tarifa),
                 'estado': paquete.estado,
+                'estado_display': paquete.get_estado_display(),
                 'fecha_recepcion': paquete.fecha_recepcion.isoformat(),
                 'fecha_entrega_real': paquete.fecha_entrega_real.isoformat() if paquete.fecha_entrega_real else None,
             })
@@ -215,7 +255,7 @@ def tracking_view(request, codigo):
                 'provincia': paquete.destinatario.get_provincia_display(),
                 'municipio': paquete.destinatario.get_municipio_display(),
             } if paquete.destinatario else None,
-            'peso_kg': float(paquete.peso_kg),
+            'peso_kg': float(paquete.peso_total_kg or 0),
             'tarifa': float(paquete.tarifa),
             'estado': paquete.estado,
             'fecha_recepcion': paquete.fecha_recepcion.isoformat(),
@@ -258,7 +298,7 @@ def clientes_list_view(request):
                 Q(telefono__icontains=search)
             )
         
-        queryset = queryset.order_by('+fecha_registro')
+        queryset = queryset.order_by('-fecha_registro')
         
         data = []
         for cliente in queryset:
@@ -268,7 +308,6 @@ def clientes_list_view(request):
                 'email': cliente.email,
                 'telefono': cliente.telefono,
                 'domicilio': cliente.domicilio,
-                'drive_license': cliente.drive_license,
                 'fecha_registro': cliente.fecha_registro.isoformat(),
                 'activo': cliente.activo,
             })
@@ -286,6 +325,7 @@ def clientes_list_view(request):
 
 
 @csrf_exempt
+@requiere_rol(*ROLES_MIAMI)  # Miami (admin/supervisor/empleado) crea clientes; Holguín no
 def cliente_create_view(request):
     """Endpoint para crear un cliente"""
     if request.method != 'POST':
@@ -299,7 +339,6 @@ def cliente_create_view(request):
             email=data.get('email', ''),
             telefono=data.get('telefono', ''),
             domicilio=data.get('domicilio', ''),
-            drive_license=data.get('drive_license', ''),
         )
         
         return JsonResponse({
@@ -308,7 +347,6 @@ def cliente_create_view(request):
             'email': cliente.email,
             'telefono': cliente.telefono,
             'domicilio': cliente.domicilio,
-            'drive_license': cliente.drive_license,
             'fecha_registro': cliente.fecha_registro.isoformat(),
         }, status=201)
         
@@ -320,6 +358,7 @@ def cliente_create_view(request):
 
 
 @csrf_exempt
+@requiere_rol(*ROLES_ADMIN)  # Solo admin/supervisor elimina clientes
 def cliente_delete_view(request, id):
     """Endpoint para eliminar un cliente"""
     if request.method != 'DELETE':
@@ -339,6 +378,42 @@ def cliente_delete_view(request, id):
         return JsonResponse({
             'error': str(e)
         }, status=500)
+
+
+@csrf_exempt
+@requiere_rol(*ROLES_MIAMI)  # Miami (admin/supervisor/empleado) edita clientes
+def cliente_update_view(request, id):
+    """Endpoint para editar un cliente (PUT/PATCH)"""
+    if request.method not in ('PUT', 'PATCH'):
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    try:
+        cliente = Cliente.objects.get(id=id)
+    except Cliente.DoesNotExist:
+        return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
+
+    try:
+        data = json.loads(request.body or b'{}')
+        for campo in ('nombre_completo', 'email', 'telefono', 'domicilio'):
+            if campo in data:
+                setattr(cliente, campo, data[campo])
+        if 'activo' in data:
+            cliente.activo = bool(data['activo'])
+        cliente.full_clean()
+        cliente.save()
+
+        return JsonResponse({
+            'id': cliente.id,
+            'nombre_completo': cliente.nombre_completo,
+            'email': cliente.email,
+            'telefono': cliente.telefono,
+            'domicilio': cliente.domicilio,
+            'activo': cliente.activo,
+            'fecha_registro': cliente.fecha_registro.isoformat(),
+        })
+    except Exception as e:
+        logger.error(f"Error en cliente_update: {e}")
+        return JsonResponse({'error': str(e)}, status=400)
 
 
 # ==========================================

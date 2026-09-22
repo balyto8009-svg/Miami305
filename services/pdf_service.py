@@ -153,7 +153,7 @@ class PDFService:
             ['Concepto', 'Detalle'],
             ['Código de seguimiento', paquete.codigo_seguimiento],
             ['Descripción', paquete.descripcion[:100]],
-            ['Peso', f"{paquete.peso_kg} kg"],
+            ['Peso', f"{paquete.peso_total_kg or 0} kg"],
         ]
         
         if paquete.alto_cm and paquete.ancho_cm and paquete.largo_cm:
@@ -282,7 +282,7 @@ class PDFService:
                     paquete.codigo_seguimiento,
                     paquete.cliente.nombre_completo[:20],
                     paquete.destinatario.nombre_completo[:20],
-                    f"{paquete.peso_kg:.2f}",
+                    f"{paquete.peso_total_kg or 0:.2f}",
                     paquete.destinatario.get_provincia_display()
                 ])
             

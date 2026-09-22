@@ -10,8 +10,9 @@ class Usuario(AbstractUser):
     
     ROLES = [
         ('admin', 'Administrador'),
-        ('supervisor', 'Supervisor'),
-        ('empleado', 'Empleado'),
+        ('supervisor', 'Supervisor/Gerente'),
+        ('empleado', 'Empleado Miami'),
+        ('holguin', 'Personal Holguín'),
         ('cliente', 'Cliente'),
     ]
     

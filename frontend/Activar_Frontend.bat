@@ -4,9 +4,9 @@ echo   MIAMI305 - Sistema de Envios a Cuba
 echo ========================================
 echo.
 echo Accediendo a la carpete del proyecto...
-echo d:\Universidad\Tesis\Miami305\frontend\
+echo d:\Universidad\Tesis\Freebuff\frontend\
 d:
-cd \Universidad\Tesis\Miami305\frontend\
+cd \Universidad\Tesis\Freebuff\frontend\
 echo.
 echo.
 COLOR B

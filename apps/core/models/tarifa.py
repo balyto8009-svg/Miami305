@@ -33,10 +33,10 @@ class Categoria(models.Model):
         ordering = ['nombre']
     
     def __str__(self):
-        return f"{self.icono} {self.nombre}"
+        return self.nombre
     
     def get_nombre_display(self):
-        return f"{self.icono} {self.nombre}"
+        return self.nombre
 
 
 class Tarifa(models.Model):
