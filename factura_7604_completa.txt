@@ -1,0 +1,138 @@
+FACTURA #7604 (COMPLETA, 2 hojas) — MIAMI 305 TRAVEL (sistema antiguo)
+Fuente: WhatsApp Image 2026-09-20 at 4.20.06 PM.jpeg (hoja 2: ropa/medicamentos)
+        WhatsApp Image 2026-09-20 at 4.20.06 PM (1).jpeg (hoja 1: encabezado + alimentos)
+============================================================
+
+DATOS GENERALES
+------------------------------------------------------------
+Envio:            12-1
+Paquete No:       7604
+Fecha:            9/17/2026  3:23 PM
+Peso:             24.60 lbs  (Paq.Lbs. 14.6 = $102.20  |  Ali.Lbs. 10)
+Precio:           $167.20
+Valor Aduanal:    Incluido $
+Servicio:         (Regular)
+
+EMPRESA
+------------------------------------------------------------
+MIAMI 305 TRAVEL
+9160 NW 122ND ST, HIALEAH GARDENS, FL 33018
+Ph.: 305-440-5171
+Email: MIAMI305TRAVEL@GMAIL.COM
+
+REMITENTE
+------------------------------------------------------------
+Nombre:     IDANIA SALINAS
+Telefono:   786-474-0118
+
+DESTINATARIO
+------------------------------------------------------------
+Nombre:     NEREIDA MEDINA LEYVA
+Direccion:  MIRAMON # 123 ALTOS ENTRE FREXES Y MARTI
+Reparto:    VISTA ALEGRE (codigo sistema: VAL), HOLGUIN
+Telefonos:  24452473 (fijo) / 53676511 (movil)
+
+============================================================
+HOJA 1 — ARTICULOS (9 items, tal cual)
+============================================================
+ 2 LATAS DE COMIDA PARA GATO
+ 4 PAQ DE REFRESCO GUAMA
+ 1 PAQ DE LECHE EN POLVO GUAMA
+ 3 PAQ CON SOBRES DE TE
+ 2 PAQ DE COMINO EN GRANO BADIA
+ 2 PAQ DE COMINO MOLIDO BADIA
+ 2 BOLSAS GRANDES
+ 1 SHAMPOO LENDREX KILLS LICE
+ 1 POMO DE GUMMY VITE MULTIVITAMN CON 70 GOMITAS L'IL CRITTERS
+
+============================================================
+HOJA 2 — ARTICULOS (42 items, tal cual)
+============================================================
+ 1 PERFUME MILESTONE
+ 1 COVER DE TELEFONO
+ 1 AUDIOFONO CON CABLE PARA CARGARLO
+ 1 PAQ CON ARETES DORADOS
+ 1 CADENA DORADA
+ 1 ESTUCHE CON COSMETICOS
+ 1 LOTION POREDUCTION
+ 2 PAPEL DE MEDIAS
+ 2 CALZONCILLOS
+ 1 PAR DE SANDALIAS PLASTICAS
+ 3 LICRAS CORTAS
+ 1 LICRA LARGA
+ 1 JUEGO DE LICRA CORTA Y BLUSA
+ 2 PULOVERES
+ 2 PARES DE SANDALIAS
+ 1 PAR DE TENIS AZULES
+ 1 PAR DE PLATAFORMIAS
+ 2 BULDHERS BLANCOS
+ 2 NUMERES
+ 3 VESTIDOS
+ 1 CARTERA NEGRA
+ 3 GAFAS
+ 1 JUEGO DE LICRA Y BLUSA NEGRAS
+ 3 BLUMERES ENCAJE
+ 1 CORRINO
+ 2 AJUSTADORES
+ 1 BLUSA ROSADA
+ 1 HNICHLA NEGRAS
+ 1 PAQ CON VELAS
+ 1 PAQ CON ALGODONES
+ 1 CAJA DE CURITAS
+ 1 TRIPLE ANTIBIOTICO
+ 1 POMO DE MULTI WOMEN CON 100 TABLETAS
+ 1 EMULSION DE ESCOCIA DE 6.5 OZ
+ 3 ALCANFOR
+ 1 POMO DE MERCIOLATO
+ 1 POMO DE MERCURCROMO
+ 1 POMO DE AINAJUI & LLANTEN CON 60 CAPSULAS
+ 1 CAJA DE CHICLE EXTRA
+ 1 PAQ DE COMIDA PARA GATO
+
+CLASIFICACION SUGERIDA (51 items en total)
+------------------------------------------------------------
+Alimentos (10):       2 latas comida para gato, 4 paq refresco Guama,
+                      1 paq leche en polvo Guama, 3 paq sobres de te,
+                      2 paq comino grano Badia, 2 paq comino molido Badia,
+                      1 paq comida para gato (hoja 2)
+Ropa y calzado (27):  2 calzoncillos, 2 papel de medias, 1 par sandalias
+                      plasticas, 3 licras cortas, 1 licra larga,
+                      1 juego licra corta y blusa, 2 puloveres,
+                      2 pares de sandalias, 1 par tenis azules,
+                      1 par plataformas, 2 bulders blancos, 2 numeres,
+                      3 vestidos, 1 juego licra y blusa negras,
+                      1 blusa rosada, 1 nichira negra, 3 blumeres encaje,
+                      1 corino, 2 ajustadores
+Cosmeticos/acces. (9):1 perfume Milestone, 1 cover de telefono,
+                      1 audiofono con cable, 1 paq aretes dorados,
+                      1 cadena dorada, 1 estuche con cosmeticos,
+                      1 lotion, 1 cartera negra, 3 gafas
+Hogar (4):            1 paq velas, 1 paq algodones, 1 caja curitas,
+                      1 caja chicle Extra
+Medicamentos (9):     1 shampoo Lendrex (hoja 1), 1 pomo gummy vites x70
+                      (hoja 1), 1 triple antibiotico,
+                      1 pomo Multi Women x100, 1 emulsion de Escocia 6.5oz,
+                      3 alcanfor, 1 pomo Mercolyn, 1 pomo mercuroromo,
+                      1 pomo Anajui & Llanten x60
+
+PESOS SUGERIDOS (conversion 1 lb = 0.4536 kg, total 24.60 lbs = 11.16 kg)
+------------------------------------------------------------
+La factura antigua reparte: Ali 10 lbs = 4.54 kg  +  Paq 14.6 lbs = 6.62 kg
+Sugerido (suma exactamente 11.16 kg, ajustar si se conocen pesos reales):
+  Alimentos     ~ 4.54 kg  (= Ali.Lbs. 10 de la factura)
+  Ropa          ~ 4.80 kg
+  Otros         ~ 1.20 kg  (cosmeticos + hogar)
+  Medicamentos  ~ 0.62 kg
+
+BLOQUE LISTO PARA PEGAR EN "NUEVO PAQUETE" (boton Pegar relacion)
+------------------------------------------------------------
+[Alimentos - 4.54 kg]: 2 latas de comida para gato, 4 paq de refresco Guama, 1 paq de leche en polvo Guama, 3 paq con sobres de te, 2 paq de comino en grano Badia, 2 paq de comino molido Badia, 1 paq de comida para gato
+[Ropa - 4.80 kg]: 2 calzoncillos, 2 papel de medias, 1 par de sandalias plasticas, 3 licras cortas, 1 licra larga, 1 juego de licra corta y blusa, 2 puloveres, 2 pares de sandalias, 1 par de tenis azules, 1 par de plataformas, 2 bulders blancos, 2 numeres, 3 vestidos, 1 juego de licra y blusa negras, 1 blusa rosada, 1 nichira negra, 3 blumeres de encaje, 1 corino, 2 ajustadores
+[Otros - 1.20 kg]: 1 perfume Milestone, 1 cover de telefono, 1 audiofono con cable para cargarlo, 1 paq con aretes dorados, 1 cadena dorada, 1 estuche con cosmeticos, 1 lotion, 1 cartera negra, 3 gafas, 1 paq con velas, 1 paq con algodones, 1 caja de curitas, 1 caja de chicle Extra
+[Medicamentos - 0.62 kg]: 1 shampoo Lendrex, 1 pomo de gummy vites multivitamin con 70 gomitas, 1 triple antibiotico, 1 pomo de Multi Women con 100 tabletas, 1 emulsion de Escocia de 6.5 oz, 3 alcanfor, 1 pomo de Mercolyn, 1 pomo de mercuroromo, 1 pomo de Anajui & Llanten con 60 capsulas
+
+NOTA: nombres tal cual aparecen en la factura original ("HNICHLA" =
+nichira, "BULDHERS" = bulders, "MERCURCROMO" = mercuroromo,
+"MERCIOLATO" = Mercolyn, "LOTION POREDUCTION" = lotion). Corregidos
+los obvios en la clasificacion y el bloque para pegar; la lista tal
+cual se conserva arriba.
